@@ -35,7 +35,7 @@ The idea is that you take advantage of your IntelliSense-compatible editor to au
 For everyday use, you may want to install `ts-run` globally:
 
 ```sh
-npm install -g ts-run
+npm install -g @septh/ts-run
 ```
 
 and have it always available in your CLI.
@@ -44,7 +44,7 @@ and have it always available in your CLI.
 Or you may install it locally in a project:
 
 ```sh
-npm install --save-dev ts-run
+npm install --save-dev @septh/ts-run
 ```
 
 and then call it from the `scripts` section in `package.json`:

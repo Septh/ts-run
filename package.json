@@ -1,6 +1,6 @@
 {
-  "name": "ts-run",
-  "version": "1.0.0",
+  "name": "@septh/ts-run",
+  "version": "0.0.0",
   "description": "The minimalist TypeScript script runner for Node",
   "keywords": [
     "node",
@@ -18,7 +18,7 @@
   "homepage": "https://github.com/Septh/ts-run#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Septh/ts-run"
+    "url": "git+https://github.com/Septh/ts-run.git"
   },
   "funding": [
     {
@@ -31,7 +31,9 @@
     }
   ],
   "type": "module",
-  "bin": "./lib/index.js",
+  "bin": {
+    "ts-run": "lib/index.js"
+  },
   "engines": {
     "node": "> 20 || ^20.6.0 || ^18.19.0"
   },
@@ -42,11 +44,14 @@
   "files": [
     "./lib/*.js"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "prebuild": "rimraf lib",
     "build": "tsc",
     "watch": "npm run build -- --watch",
-    "test": "node --import=ts-run/register test/check-node-21.ts && node --import=ts-run/register --test test/**/*.test.*"
+    "test": "node --import=@septh/ts-run/register test/check-node-21.ts && node --import=@septh/ts-run/register --test test/**/*.test.*"
   },
   "dependencies": {
     "sucrase": "^3.35.0"
