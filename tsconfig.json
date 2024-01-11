@@ -1,0 +1,38 @@
+{
+  "include": [ "source" ],
+  "compilerOptions": {
+
+    // Input
+    "rootDir": "source",
+    // "moduleResolution": "Node16",
+    // "esModuleInterop": true,
+    // "allowSyntheticDefaultImports": true,
+
+    // Output
+    "outDir": "lib",
+    "target": "ESNext",
+    "module": "Node16",
+    // "importHelpers": true,
+    "sourceMap": true,
+    // "declaration": true,
+    // "declarationMap": true,
+    "removeComments": true,
+
+    // Libs
+    "lib": [ "ESNext" ],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+
+    // Type checking
+    "strict": true,
+    "exactOptionalPropertyTypes": false,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": false,
+    "forceConsistentCasingInFileNames": true,
+  }
+}

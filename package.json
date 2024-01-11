@@ -1,0 +1,44 @@
+{
+  "name": "ts-run",
+  "version": "0.0.0",
+  "description": "The minimalist TypeScript script runner for Node",
+  "keywords": [
+    "node",
+    "runtime",
+    "typescript",
+    "script",
+    "runner",
+    "commonjs",
+    "module",
+    "cjs",
+    "esm"
+  ],
+  "author": "Stephan 'Septh' Schreiber <septh@sfr.fr>",
+  "license": "MIT",
+  "type": "module",
+  "bin": "./lib/index.js",
+  "engines": {
+    "node": "> 20 || ^20.6.0 || ^18.19.0"
+  },
+  "engineStrict": true,
+  "exports": {
+    "./register": "./lib/index.js"
+  },
+  "files": [
+    "./lib/*.js"
+  ],
+  "scripts": {
+    "prebuild": "rimraf lib",
+    "build": "tsc",
+    "watch": "npm run build -- --watch",
+    "test": "node --import=ts-run/register test/check-node-21.ts && node --import=ts-run/register --test test/**/*.test.*"
+  },
+  "dependencies": {
+    "sucrase": "^3.35.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.7",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3"
+  }
+}

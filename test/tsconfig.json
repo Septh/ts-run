@@ -1,0 +1,21 @@
+// This tsconfig is completely ignored by ts-run but necessary to author scripts
+// in language server compatible IDEs (VS Code, etc.)
+{
+  "compilerOptions": {
+    // Tell the TypeScript language server that this directory contains Node scripts,
+    // TypeScript will infer the actual module type from the nearest parent package.json
+    // that has a `type: 'module'` or `type: 'commonjs'` entry.
+    "module": "Node16",
+
+    // Scripts must import .ts files because ts-run does not map .js specifiers to .ts files.
+    // This flag enables this.
+    "allowImportingTsExtensions": true,
+
+    // `noEmit: true` is required when using `allowImportingTsExtensions: true`
+    "noEmit": true,
+
+    // Script are transpiled in isolation, so tell the language server
+    // to warn you when incompatible constructs are used.
+    "isolatedModules": true
+  }
+}
