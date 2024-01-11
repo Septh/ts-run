@@ -16,7 +16,7 @@
 
 
 ## About
-`ts-run` is a CLI command that you can use to run scripts written in TypeScript in NodeJS as if they were written in plain JavaScript. It is a simple as:
+`ts-run` is a CLI command that you can use to run TypeScripts scripts in NodeJS as if they were written in plain JavaScript. It is a simple as:
 
 ```sh
 ts-run ./some-script.ts
@@ -26,12 +26,12 @@ The idea is that you take advantage of your IntelliSense-compatible editor to au
 
 
 ## Installation and usage
-
 `ts-run` requires a modern (as of january 2024) version of NodeJS:
 - Node 18 version 18.19.0 or later
 - Node 20 version 20.6.0 or later
 - Any version >= 21
 
+#### Global install
 For everyday use, you may want to install `ts-run` globally:
 
 ```sh
@@ -40,6 +40,7 @@ npm install -g ts-run
 
 and have it always available in your CLI.
 
+#### Local install
 Or you may install it locally in a project:
 
 ```sh
@@ -86,7 +87,6 @@ What this means in particular is, that if you try to use ESM features (i.e., thi
 
 Conversely, CommonJS features (i.e., things like `__dirname` or `require()`) do not exist in an ESM context and `ts-run` will not make them magically available.
 
-> #### Note:
 > If you are not familiar with CommonJS and ESM modules and when NodeJS expects one format or the other, Node's documentation has [a comprehensive guide about modules](https://nodejs.org/docs/latest-v20.x/api/esm.html).
 
 
@@ -97,15 +97,14 @@ Use the `.ts` extension when importing files. They are mandatory in ESM modules 
 import { foo } from './foo.ts'
 ```
 
-Contrary to the TypeScript compiler, `ts-run` will not try and find a `.ts` file if you use a `.js` specifier.
-
+Contrary to the TypeScript compiler, `ts-run` will not try and find a `.ts` file if you use a corresponding `.js` specifier.
 
 ## Authoring scripts
 For the reasons stated above, `ts-run` does not need (and in fact, does not even look for) a `tsconfig.json` file.
 
 The same is not true for the TypeScript Language Server that your IntelliSense-aware editor relies on, however. You'll find the following `tsconfig.json` useful to get the right warnings and errors reports:
 
-```json
+```jsonc
 {
   "compilerOptions": {
     // This tells the TypeScript language server that this directory contains Node scripts.
