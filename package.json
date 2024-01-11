@@ -1,6 +1,6 @@
 {
   "name": "ts-run",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "The minimalist TypeScript script runner for Node",
   "keywords": [
     "node",
