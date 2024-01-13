@@ -124,6 +124,40 @@ The same is not true however for the TypeScript Language Server that your Intell
 ```
  For reference, you can find such a `tsconfig` in the [test folder](./test/tsconfig.json).
 
+ ## Debugging scripts with VS Code
+
+Either run `ts-run` in the VS Code Javascript Debug Terminal or use the following `launch.json` configuration (replace `<path-to-your-script.ts>` with the actual path to your script):
+
+```jsonc
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Program",
+            "request": "launch",
+            "type": "node",
+            "runtimeArgs": [
+                "--import", "@septh/ts-run/register"
+            ],
+            "program": "${workspaceFolder}/<path-to-your-script.ts>",
+            "windows": {
+                "program": "${workspaceFolder}\\<path-to-your-script.ts>"
+            },
+            "skipFiles": [
+                "<node_internals>/**",
+                "**/node_modules/**"
+            ],
+            "resolveSourceMapLocations": [
+                "!**/node_modules/**"
+            ],
+        }
+    ]
+}
+```
+
 
 ## Licence
 MIT.
