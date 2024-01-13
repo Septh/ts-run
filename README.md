@@ -65,7 +65,7 @@ npx ts-run ./scripts/prepare-release.ts
 ```
 
 > #### Note:
-> `ts-run` is not a wrapper around Node, it *is* node with a (tiny) preload script that transpiles TypeScript to JavaScript. Therefore, all NodeJS command-line options and flags are available:
+> `ts-run` is not a wrapper around Node, it *is* Node with a (tiny) preload script that transpiles TypeScript to JavaScript. Therefore, all Node command-line options and flags are available:
 >
 > ```sh
 > ts-run --no-warnings ./some-script.ts
@@ -102,7 +102,7 @@ Contrary to the TypeScript compiler, `ts-run` will not try and find a `.ts` file
 ## Authoring scripts
 For the reasons stated above, `ts-run` does not need (and in fact, does not even look for) a `tsconfig.json` file.
 
-The same is not true for the TypeScript Language Server that your IntelliSense-aware editor relies on, however. You'll find the following `tsconfig.json` useful to get the right warnings and errors reports:
+The same is not true however for the TypeScript Language Server that your IntelliSense-aware editor relies on. You'll find the following `tsconfig.json` useful to get the right warnings and errors reports:
 
 ```jsonc
 {
@@ -116,12 +116,13 @@ The same is not true for the TypeScript Language Server that your IntelliSense-a
     // `noEmit: true` is required when using `allowImportingTsExtensions: true`
     "noEmit": true,
 
-    // And, just to be on the safe side:
+    // Scripts are compiled in isolation, this imposes a few restrictions
+    // on some TypeScript features like const enums or namespaces.
     "isolatedModules": true
   }
 }
 ```
- You can find such a `tsconfig` in the [test folder](./test/tsconfig.json).
+ For reference, you can find such a `tsconfig` in the [test folder](./test/tsconfig.json).
 
 
 ## Licence
