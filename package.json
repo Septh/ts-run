@@ -51,7 +51,7 @@
     "prebuild": "rimraf lib",
     "build": "tsc",
     "watch": "npm run build -- --watch",
-    "test": "node --import=@septh/ts-run/register test/check-node-21.ts && node --import=@septh/ts-run/register --test test/**/*.test.*"
+    "test": "ts-run test/check-node-21.ts && node --import=@septh/ts-run/register --test test/**/*.test.*"
   },
   "dependencies": {
     "sucrase": "^3.35.0"
