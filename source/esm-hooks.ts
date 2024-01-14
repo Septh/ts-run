@@ -7,30 +7,43 @@ import { transform, type Transform } from 'sucrase'
 type ModuleFormat = 'commonjs' | 'module'
 
 interface PkgType {
-    type?: ModuleFormat
+    type?: string
 }
 
-let entryPoint: string
-export const initialize: InitializeHook<string> = scriptName => {
+let entryPoint: string | undefined
+export const initialize: InitializeHook<string | undefined> = scriptName => {
     entryPoint = scriptName
 }
 
 export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
+    // console.log(`specifier = ${specifier}, entryPoint = ${entryPoint}, context.parentURL = ${context.parentURL}`)
 
-    // We only need to manually resolve the script entry point relative to path.cwd()
-    // because otherwise, Node would resolve it relative to our own directory.
-    // So, 1/ we let Node handle all other specifiers beyond the entry point...
+    // There are 4 possible scenarios:
+    //
+    // A) ts-run script.ts
+    //    => specifier = entryPoint = script.ts, context.parentURL = url of ./index.js
+    //
+    // B) node <path-to-index.js> script.ts
+    //    => specifier = entryPoint = script.ts, context.parentURL = url of ./index.js (same as A)
+    //
+    // C) node --import @septh/ts-run/register script.ts
+    //    => specifier = url of script.ts, entryPoint = undefined, context.parentURL = undefined
+    //
+    // D) import something from 'specifier' (inside a script)
+    //    => specifier = specifier, entryPoint is irrevelant, context.parentURL = url of importer
+    //
+
+    // Scenarios C and D:
+    //   We just let Node resolve the specifier as we have no added value in these cases.
     if (specifier !== entryPoint || context.parentURL === undefined)
         return nextResolve(specifier, context)
 
-    // And 2/, we make sure the entry point is either relative or absolute.
+    // We make sure the entry point is either relative or absolute
     // FIXME: this prevents running a script from node_modules,
     //        we may want to add support for this at some point.
     if (/^\w/.test(specifier) && !path.isAbsolute(specifier))
-        specifier = './' + specifier
-
-    // Apart from that, there is nothing special here.
-    return {
+    specifier = './' + specifier
+        return {
         ...await nextResolve(specifier, { ...context, parentURL: undefined }),
         shortCircuit: true
     }
@@ -59,9 +72,9 @@ function transpile(source: ModuleSource, format: ModuleFormat, filePath: string)
         + Buffer.from(JSON.stringify(sourceMap)).toString('base64')
 }
 
-async function nearestPackageType(file: string) {
+async function nearestPackageType(file: string): Promise<ModuleFormat> {
     for (
-        let current = path.dirname(file), previous: string | undefined;
+        let current = path.dirname(file), previous: string | undefined = undefined;
         previous !== current;
         previous = current, current = path.dirname(current)
     ) {
@@ -70,25 +83,25 @@ async function nearestPackageType(file: string) {
             .catch(err => {
                 if (err.code !== 'ENOENT')
                     console.error(err)
+                return undefined
             })
-
-        // FIXME: we should probably check the type before returning it...
-        if (type) return type
+        if (type === 'module' || type === 'commonjs')
+            return type
     }
 
-    // TODO: check --experimental-default-type flag
+    // TODO: check Node's `--experimental-default-type` flag, but how?
     return 'commonjs'
 }
 
 export const load: LoadHook = async (url, context, nextLoad) => {
 
     // If this is not a TypeScript file, defer to the next hook in the chain.
-    const parsed = new URL(url)
-    const ext = /(\.[cm]?ts)$/.exec(url)
-    if (parsed.protocol !== 'file:' || !ext)
+    const { protocol, pathname } = new URL(url)
+    const ext = /(\.[cm]?ts)$/.exec(pathname)
+    if (protocol !== 'file:' || !ext)
         return nextLoad(url, context)
 
-    // Determine the output format based on file extension
+    // Determine the output format based on the file's extension
     // or the nearest package.json's `type` field.
     const filePath = fileURLToPath(url)
     const format: ModuleFormat = (

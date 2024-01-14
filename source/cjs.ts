@@ -6,7 +6,7 @@ import type { Transform } from 'sucrase'
 type ModuleFormat = 'commonjs' | 'module'
 
 interface PkgType {
-    type?: ModuleFormat
+    type?: string
 }
 
 const require = Module.createRequire(import.meta.url)
@@ -46,23 +46,22 @@ function transpile(m: Module, format: ModuleFormat, filePath: string) {
     )
 }
 
-function nearestPackageType(file: string) {
+function nearestPackageType(file: string): ModuleFormat {
     for (
-        let current = path.dirname(file), previous: string | undefined;
+        let current = path.dirname(file), previous: string | undefined = undefined;
         previous !== current;
         previous = current, current = path.dirname(current)
     ) {
         try {
             const data = readFileSync(path.join(current, 'package.json'), 'utf-8')
             const { type } = JSON.parse(data) as PkgType
-
-            // FIXME: we should probably check the type before returning it...
-            if (type) return type
+            if (type === 'module' || type === 'commonjs')
+                return type
         }
         catch {}
     }
 
-    // TODO: check --experimental-default-type flag
+    // TODO: check --experimental-default-type flag, but how?
     return 'commonjs'
 }
 

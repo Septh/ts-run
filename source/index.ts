@@ -12,11 +12,10 @@ if (
 ) {
 
     // Get the name of the script to run from the command line.
-    // Do not error out if scriptName if undefined because:
+    // Do not error out if there is none because:
     // - either we were invoked with no script name and we'll
     //   just end up doing nothing;
     // - or we were inkvoked via Node's --import option
-    //   (as is the case when `npm test` is run)
     const scriptName = process.argv
         .slice(2)
         .filter(arg => !arg.startsWith('-'))
@@ -28,7 +27,7 @@ if (
         data: scriptName
     })
 
-    // Install the cjs hooks -- those are run in the main thread
+    // Install the cjs hooks -- those are run synchronously in the main thread
     install_cjs_hooks()
 
     // Enable source map support
