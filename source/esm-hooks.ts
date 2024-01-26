@@ -38,13 +38,21 @@ export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
     if (specifier !== entryPoint || context.parentURL === undefined)
         return nextResolve(specifier, context)
 
-    // We make sure the entry point is either relative or absolute
-    // FIXME: this prevents running a script from node_modules,
-    //        we may want to add support for this at some point.
-    if (/^\w/.test(specifier) && !path.isAbsolute(specifier))
-    specifier = './' + specifier
-        return {
-        ...await nextResolve(specifier, { ...context, parentURL: undefined }),
+    // Scenarios A and B:
+    //   If called from the CLI, we need to resolve specifier relative to process.cwd because otherwise
+    //   Node would resolve it relative to our own directory.
+    //
+    //   FIXME: this prevents running a script from node_modules with a bare specifier,
+    //          we may want to add support for this at some point.
+    context = { ...context }
+    if (specifier === entryPoint) {
+        context.parentURL = undefined
+        if (/^\w/.test(specifier) && !path.isAbsolute(specifier))
+            specifier = './' + specifier
+    }
+
+    return {
+        ...await nextResolve(specifier, context),
         shortCircuit: true
     }
 }
