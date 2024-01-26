@@ -5,9 +5,12 @@ import type { InitializeHook, ResolveHook, LoadHook, ModuleSource } from 'node:m
 import { transform, type Transform } from 'sucrase'
 
 type ModuleFormat = 'commonjs' | 'module'
+interface NodeError extends Error {
+    code?: string
+}
 
 interface PkgType {
-    type?: string
+    type?: ModuleFormat
 }
 
 let entryPoint: string | undefined
@@ -80,21 +83,29 @@ function transpile(source: ModuleSource, format: ModuleFormat, filePath: string)
         + Buffer.from(JSON.stringify(sourceMap)).toString('base64')
 }
 
+const noType = Symbol()
+const typeCache = new Map<string, ModuleFormat | Symbol>()
 async function nearestPackageType(file: string): Promise<ModuleFormat> {
     for (
         let current = path.dirname(file), previous: string | undefined = undefined;
         previous !== current;
         previous = current, current = path.dirname(current)
     ) {
-        const type = await readFile(path.join(current, 'package.json'), 'utf-8')
-            .then(data => (JSON.parse(data) as PkgType).type)
-            .catch(err => {
-                if (err.code !== 'ENOENT')
-                    console.error(err)
-                return undefined
-            })
-        if (type === 'module' || type === 'commonjs')
-            return type
+        const pkgFile = path.join(current, 'package.json')
+        let format = typeCache.get(pkgFile)
+        if (!format) {
+            format = await readFile(pkgFile, 'utf-8')
+                .then(data => (JSON.parse(data) as PkgType).type)
+                .catch((err: NodeError) => {
+                    if (err.code !== 'ENOENT')
+                        console.error(err)
+                    return undefined
+                })
+            typeCache.set(pkgFile, format ?? noType)
+        }
+
+        if (format === 'module' || format === 'commonjs')
+            return format
     }
 
     // TODO: check Node's `--experimental-default-type` flag, but how?
@@ -113,11 +124,11 @@ export const load: LoadHook = async (url, context, nextLoad) => {
     // or the nearest package.json's `type` field.
     const filePath = fileURLToPath(url)
     const format: ModuleFormat = (
-        ext[1] === '.cts'
-            ? 'commonjs'
+        ext[1] === '.ts'
+            ? await nearestPackageType(filePath)
             : ext[1] === '.mts'
                 ? 'module'
-                : await nearestPackageType(filePath)
+                : 'commonjs'
     )
 
     // Let Node do the actual loading before transpiling the file.

@@ -4,9 +4,12 @@ import { readFileSync } from 'node:fs'
 import type { Transform } from 'sucrase'
 
 type ModuleFormat = 'commonjs' | 'module'
+interface NodeError extends Error {
+    code?: string
+}
 
 interface PkgType {
-    type?: string
+    type?: ModuleFormat
 }
 
 const require = Module.createRequire(import.meta.url)
@@ -46,19 +49,31 @@ function transpile(m: Module, format: ModuleFormat, filePath: string) {
     )
 }
 
+const noType = Symbol()
+const typeCache = new Map<string, ModuleFormat | Symbol>()
 function nearestPackageType(file: string): ModuleFormat {
     for (
         let current = path.dirname(file), previous: string | undefined = undefined;
         previous !== current;
         previous = current, current = path.dirname(current)
     ) {
-        try {
-            const data = readFileSync(path.join(current, 'package.json'), 'utf-8')
-            const { type } = JSON.parse(data) as PkgType
-            if (type === 'module' || type === 'commonjs')
-                return type
+        const pkgFile = path.join(current, 'package.json')
+        let format = typeCache.get(pkgFile)
+        if (!format) {
+            try {
+                const data = readFileSync(pkgFile, 'utf-8')
+                format = (JSON.parse(data) as PkgType).type
+            }
+            catch(err) {
+                const { code } = err as NodeError
+                if (code !== 'ENOENT')
+                    console.error(err)
+            }
+            typeCache.set(pkgFile, format ?? noType)
         }
-        catch {}
+
+        if (format === 'module' || format === 'commonjs')
+            return format
     }
 
     // TODO: check --experimental-default-type flag, but how?
