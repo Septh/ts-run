@@ -2,7 +2,7 @@
 import path from 'node:path'
 import Module from 'node:module'
 import { realpath } from 'node:fs/promises'
-import { install_cjs_hooks } from './cjs.js'
+import { install_cjs_hooks } from './cjs-hooks.js'
 
 const [ major, minor, patch ] = process.versions.node.split('.').map(Number)
 if (

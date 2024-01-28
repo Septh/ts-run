@@ -2,7 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readFile } from 'node:fs/promises'
 import type { InitializeHook, ResolveHook, LoadHook, ModuleSource } from 'node:module'
-import { transform, type Transform } from 'sucrase'
+import transformer = require('./cjs-transform.cjs')
 
 type ModuleFormat = 'commonjs' | 'module'
 interface NodeError extends Error {
@@ -60,24 +60,8 @@ export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
     }
 }
 
-const transforms: Record<ModuleFormat, Transform[]> = {
-    commonjs: [ 'typescript', 'imports' ],
-    module: [ 'typescript' ]
-}
-
 function transpile(source: ModuleSource, format: ModuleFormat, filePath: string) {
-
-    const { code, sourceMap } = transform(source.toString(), {
-        transforms: transforms[format],
-        preserveDynamicImport: true,
-        disableESTransforms: true,
-        keepUnusedImports: true,
-        filePath,
-        sourceMapOptions: {
-            compiledFilename: filePath
-        }
-    })
-
+    const { code, sourceMap } = transformer.transform(source.toString(), format, filePath)
     return code
         + '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,'
         + Buffer.from(JSON.stringify(sourceMap)).toString('base64')

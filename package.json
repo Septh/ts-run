@@ -35,30 +35,36 @@
     "ts-run": "lib/index.js"
   },
   "engines": {
-    "node": "> 20 || ^20.6.0 || ^18.19.0"
+    "node": ">= 21 || ^20.6.0 || ^18.19.0"
   },
   "engineStrict": true,
   "exports": {
     "./register": "./lib/index.js"
   },
   "files": [
-    "./lib/*.js"
+    "./lib",
+    "!*.map"
   ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
     "prebuild": "rimraf lib",
-    "build": "tsc",
+    "build": "rollup --config",
     "watch": "npm run build -- --watch",
     "test": "ts-run test/check-node-21.ts && node --import=@septh/ts-run/register --test test/**/*.test.*"
   },
-  "dependencies": {
-    "sucrase": "^3.35.0"
-  },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
     "@types/node": "^20.10.7",
     "rimraf": "^5.0.5",
+    "rollup": "^4.9.6",
+    "rollup-plugin-node-externals": "^6.1.2",
+    "sucrase": "^3.35.0",
+    "tslib": "^2.6.2",
     "typescript": "^5.3.3"
   },
   "np": {
