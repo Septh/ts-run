@@ -22,7 +22,7 @@
 ts-run ./some-script.ts
 ```
 
-The idea is that you take advantage of your IntelliSense-compatible editor to author your scripts with type checking on, and `ts-run` will transparently run them (using [Sucrase](https://github.com/alangpierce/sucrase) under the hood) without you having to use the TypeScript compliler beforehand.
+The idea is that you take advantage of your IntelliSense-compatible editor to author your scripts with full type checking on, and `ts-run` will transparently run them (using [Sucrase](https://github.com/alangpierce/sucrase) under the hood) without you having to run the TypeScript compliler beforehand.
 
 
 ## Installation and usage
@@ -61,7 +61,7 @@ and then call it from the `scripts` section in `package.json`:
 or from the command line:
 
 ```sh
-npx ts-run ./scripts/prepare-release.ts
+npx ts-run ./scripts/do-something.ts
 ```
 
 > #### Note:
@@ -91,13 +91,13 @@ Conversely, CommonJS features (i.e., things like `__dirname` or `require()`) do 
 
 
 ### import specifiers
-Use the `.ts` extension when importing files. They are mandatory in ESM modules and highly recommended in CJS modules.
+Use the `.ts`, `.mts` or `.cts` extensions when importing modules. They are mandatory in ESM modules and highly recommended in CJS modules.
 
 ```ts
-import { foo } from './foo.ts'
+import { something } from './utilities.ts'
 ```
 
-Contrary to the TypeScript compiler, `ts-run` will not try and find a `.ts` file if you use a corresponding `.js` specifier.
+Contrary to the TypeScript compiler, `ts-run` will not try and find a corresponding `.ts` file if you use a `.js` specifier.
 
 ## Authoring scripts
 For the reasons stated above, `ts-run` does not need (and in fact, does not even look for) a `tsconfig.json` file.
@@ -118,13 +118,19 @@ The same is not true however for the TypeScript Language Server that your Intell
 
     // Scripts are compiled in isolation, this imposes a few restrictions
     // on some TypeScript features like const enums or namespaces.
-    "isolatedModules": true
+    "isolatedModules": true,
+
+    // Of course, add any other type-checling options necessary:
+    "strict": true
+    // etc.
   }
 }
 ```
- For reference, you can find such a `tsconfig` in the [test folder](./test/tsconfig.json).
+For reference, you can find such a `tsconfig.json` file in the [test folder](./test/tsconfig.json).
 
- ## Debugging scripts with VS Code
+## Debugging scripts with VS Code
+
+Because `ts-run` supports sourcemaps, you can set breakpoints in your script code, inspect variables, etc.
 
 Either run `ts-run` in the VS Code Javascript Debug Terminal or use the following `launch.json` configuration (replace `<path-to-your-script.ts>` with the actual path to your script):
 
@@ -136,7 +142,7 @@ Either run `ts-run` in the VS Code Javascript Debug Terminal or use the followin
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Program",
+            "name": "Launch with ts-run",
             "request": "launch",
             "type": "node",
             "runtimeArgs": [
