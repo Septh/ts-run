@@ -7,7 +7,6 @@ import terser from '@rollup/plugin-terser'
 import { defineConfig } from 'rollup'
 
 export default defineConfig([
-    // ESM entry points
     {
         input: [
             'source/index.ts',
@@ -26,22 +25,17 @@ export default defineConfig([
         plugins: [
             nodeExternals(),
             nodeResolve(),
-            commonsJS({
-                strictRequires: true,
-                sourceMap: false,
-                transformMixedEsModules: true
-            }),
+            commonsJS({ strictRequires: true }),
             typescript()
         ],
         // Have to use Rollup's `external` option as rollup-plugin-node-externals
-        // only works for dependencies, not individual files
-        // external: /hooks\.js/
+        // only works for dependencies, not individual source files
+        external: /hooks\.js/
     },
-    // CJS file
     {
         input: 'source/cjs-transform.cts',
         output: {
-            file: 'lib/cjs-transform.cjs',
+            dir: 'lib',
             format: 'commonjs',
             exports: 'named',
             generatedCode: 'es2015',
@@ -65,10 +59,10 @@ export default defineConfig([
             }),
             terser()
         ],
-        // sucrase has circular dependencies :/
+        // sucrase has MANY circular dependencies :/
         onLog(level, log, handler) {
             if (log.code === 'CIRCULAR_DEPENDENCY')
-                return      // Ignore circular dependency warnings
+                return
             handler(level, log)
         }
     }
