@@ -120,7 +120,7 @@ The same is not true however for the TypeScript Language Server that your Intell
     // on some TypeScript features like const enums or namespaces.
     "isolatedModules": true,
 
-    // Of course, add any other type-checling options necessary:
+    // Of course, add any other type-checking options you deem necessary:
     "strict": true
     // etc.
   }
