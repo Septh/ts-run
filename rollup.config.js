@@ -63,16 +63,13 @@ export default defineConfig([
                     module: undefined,
                 },
             }),
-            terser({
-                // sourceMap: false
-
-            })
+            terser()
         ],
         // sucrase has circular dependencies :/
         onLog(level, log, handler) {
             if (log.code === 'CIRCULAR_DEPENDENCY')
                 return      // Ignore circular dependency warnings
-            handler(level, log); // otherwise, just print the log
+            handler(level, log)
         }
     }
 ])
