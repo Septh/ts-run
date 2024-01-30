@@ -4,95 +4,71 @@ import { readFile } from 'node:fs/promises'
 import type { InitializeHook, ResolveHook, LoadHook, ModuleSource } from 'node:module'
 import transformer = require('./cjs-transform.cjs')
 
-type ModuleFormat = 'commonjs' | 'module'
-interface NodeError extends Error {
-    code?: string
-}
-
-interface PkgType {
-    type?: ModuleFormat
-}
-
-let entryPoint: string | undefined
-export const initialize: InitializeHook<string | undefined> = scriptName => {
-    entryPoint = scriptName
+let self: string
+export const initialize: InitializeHook<string> = data => {
+    self = data
 }
 
 export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
-    // console.log(`specifier = ${specifier}, entryPoint = ${entryPoint}, context.parentURL = ${context.parentURL}`)
+    // when run with `ts-run <script>` or `node path/to/index.js <script>`,
+    // we need to resolve the entry point specifier relative to process.cwd()
+    // because otherwise Node would resolve it relative to our own index.js.
+    //
+    // FIXME: this prevents running a script from node_modules with a bare specifier,
+    //        we may want to add support for this later.
+    if (context.parentURL === self) {
+        context = {
+            ...context,
+            parentURL: undefined
+        }
 
-    // There are 4 possible scenarios:
-    //
-    // A) ts-run script.ts
-    //    => specifier = entryPoint = script.ts, context.parentURL = url of ./index.js
-    //
-    // B) node <path-to-index.js> script.ts
-    //    => specifier = entryPoint = script.ts, context.parentURL = url of ./index.js (same as A)
-    //
-    // C) node --import @septh/ts-run/register script.ts
-    //    => specifier = url of script.ts, entryPoint = undefined, context.parentURL = undefined
-    //
-    // D) import something from 'specifier' (inside a script)
-    //    => specifier = specifier, entryPoint is irrevelant, context.parentURL = url of importer
-    //
-
-    // Scenarios C and D:
-    //   We just let Node resolve the specifier as we have no added value in these cases.
-    if (specifier !== entryPoint || context.parentURL === undefined)
-        return nextResolve(specifier, context)
-
-    // Scenarios A and B:
-    //   If called from the CLI, we need to resolve specifier relative to process.cwd because otherwise
-    //   Node would resolve it relative to our own directory.
-    //
-    //   FIXME: this prevents running a script from node_modules with a bare specifier,
-    //          we may want to add support for this at some point.
-    context = { ...context }
-    if (specifier === entryPoint) {
-        context.parentURL = undefined
         if (/^\w/.test(specifier) && !path.isAbsolute(specifier))
             specifier = './' + specifier
+
+        return {
+            ...await nextResolve(specifier, context),
+            shortCircuit: true
+        }
     }
 
-    return {
-        ...await nextResolve(specifier, context),
-        shortCircuit: true
-    }
+    // Normal operation otherwise.
+    return nextResolve(specifier, context)
 }
 
-function transpile(source: ModuleSource, format: ModuleFormat, filePath: string) {
+function transpile(source: ModuleSource, format: NodeJS.ModuleType, filePath: string) {
     const { code, sourceMap } = transformer.transform(source.toString(), format, filePath)
     return code
         + '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,'
         + Buffer.from(JSON.stringify(sourceMap)).toString('base64')
 }
 
-const noType = Symbol()
-const typeCache = new Map<string, ModuleFormat | Symbol>()
-async function nearestPackageType(file: string): Promise<ModuleFormat> {
+const unknownType = Symbol()
+const pkgTypeCache = new Map<string, NodeJS.ModuleType | Symbol>()
+async function nearestPackageType(file: string): Promise<NodeJS.ModuleType> {
     for (
         let current = path.dirname(file), previous: string | undefined = undefined;
         previous !== current;
         previous = current, current = path.dirname(current)
     ) {
         const pkgFile = path.join(current, 'package.json')
-        let format = typeCache.get(pkgFile)
+        let format = pkgTypeCache.get(pkgFile)
         if (!format) {
             format = await readFile(pkgFile, 'utf-8')
-                .then(data => (JSON.parse(data) as PkgType).type)
-                .catch((err: NodeError) => {
-                    if (err.code !== 'ENOENT')
+                .then(data => (JSON.parse(data) as NodeJS.PkgType).type ?? unknownType)
+                .catch(err => {
+                    const { code } = err as NodeJS.NodeError
+                    if (code !== 'ENOENT')
                         console.error(err)
-                    return undefined
+                    return unknownType
                 })
-            typeCache.set(pkgFile, format ?? noType)
+            pkgTypeCache.set(pkgFile, format)
         }
 
-        if (format === 'module' || format === 'commonjs')
+        if (typeof format === 'string')
             return format
     }
 
-    // TODO: check Node's `--experimental-default-type` flag, but how?
+    // TODO: decide default format based on --experimental-default-type
     return 'commonjs'
 }
 
@@ -107,7 +83,7 @@ export const load: LoadHook = async (url, context, nextLoad) => {
     // Determine the output format based on the file's extension
     // or the nearest package.json's `type` field.
     const filePath = fileURLToPath(url)
-    const format: ModuleFormat = (
+    const format: NodeJS.ModuleType = (
         ext[1] === '.ts'
             ? await nearestPackageType(filePath)
             : ext[1] === '.mts'
@@ -115,10 +91,9 @@ export const load: LoadHook = async (url, context, nextLoad) => {
                 : 'commonjs'
     )
 
-    // Let Node do the actual loading before transpiling the file.
     // Notes:
     // - Node doesn't yet care about the file contents at this point
-    //   so we're fine call nextLoad()
+    //   so we're fine calling nextLoad() to do the actual loading
     // - if null is returned for `source`, the CJS loader will be used instead
     let { source } = await nextLoad(url, { ...context, format })
     if (source)

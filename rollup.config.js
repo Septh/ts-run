@@ -19,8 +19,7 @@ export default defineConfig([
             exports: 'named',
             generatedCode: 'es2015',
             sourcemap: true,
-            sourcemapExcludeSources: true,
-            minifyInternalExports: false
+            sourcemapExcludeSources: true
         },
         plugins: [
             nodeExternals(),
@@ -35,19 +34,21 @@ export default defineConfig([
     {
         input: 'source/cjs-transform.cts',
         output: {
-            dir: 'lib',
+            file: 'lib/cjs-transform.cjs',
             format: 'commonjs',
             exports: 'named',
             generatedCode: 'es2015',
-            esModule: 'if-default-prop',
+            esModule: false,
             sourcemap: true,
-            sourcemapExcludeSources: true,
-            minifyInternalExports: false
+            sourcemapExcludeSources: true
         },
         plugins: [
             nodeExternals(),
             nodeResolve(),
             commonsJS(),
+            // Not sure why but this is the only way I've found
+            // to have @rollup/plugin-typescript compile this file
+            // the way I wanted.
             typescript({
                 include: './source/cjs-transform.cts',
                 exclude: './node-modules',

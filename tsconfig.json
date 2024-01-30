@@ -4,18 +4,12 @@
 
     // Input
     "rootDir": "source",
-    // "moduleResolution": "Node16",
-    // "esModuleInterop": true,
-    // "allowSyntheticDefaultImports": true,
 
     // Output
     "outDir": "lib",
     "target": "ESNext",
     "module": "Node16",
-    // "importHelpers": true,
     "sourceMap": true,
-    // "declaration": true,
-    // "declarationMap": true,
     "removeComments": true,
 
     // Libs
@@ -34,5 +28,6 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": false,
     "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true
   }
 }

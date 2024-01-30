@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import Module from 'node:module'
 import { realpath } from 'node:fs/promises'
@@ -10,46 +11,37 @@ if (
     || (major === 20 && minor >= 6)
     || (major === 18 && minor >= 19)
 ) {
+    const self = import.meta.url
 
-    // Get the name of the script to run from the command line.
-    // Do not error out if there is none because:
-    // - either we were invoked with no script name and we'll
-    //   just end up doing nothing;
-    // - or we were inkvoked via Node's --import option
-    const scriptName = process.argv
-        .slice(2)
-        .filter(arg => !arg.startsWith('-'))
-        .at(0)
-
-    // Install the esm hooks -- those are run in a worker thread
+    // Install the esm hooks -- those are run in a worker thread.
     Module.register('./esm-hooks.js', {
-        parentURL: import.meta.url,
-        data: scriptName
+        parentURL: self,
+        data: self
     })
 
-    // Install the cjs hooks -- those are run synchronously in the main thread
+    // Install the cjs hooks -- those are run synchronously in the main thread.
     install_cjs_hooks()
 
-    // Enable source map support
+    // Enable source map support.
     process.setSourceMapsEnabled(true)
 
-    // Adjust process.argv to hide us from the script to run
-    if (scriptName) {
+    // If we're not run via Node's --import flag but rather via
+    // `ts-run <script>` or `node path/to/this/file.js <script>`,
+    // get the name of the real entry point from the command line,
+    // remove us from argv then dynamically import the real entry point.
+    const entryPoint = process.argv[2]
+    if (process.argv[1] === fileURLToPath(self) && entryPoint) {
         try {
-            process.argv[1] = await realpath(path.resolve(scriptName))
+            process.argv[1] = await realpath(entryPoint)
         }
         catch {
-            process.argv[1] = path.resolve(scriptName)
+            process.argv[1] = path.resolve(entryPoint)
         }
-        process.argv.splice(process.argv.indexOf(scriptName), 1)
+        process.argv.splice(2, 1)
 
-        // Dynamically import the script entry point
-        // (note that this will fallback to the legacy cjs loader
-        // if the script happens to be commonjs)
-        await import(scriptName)
+        await import(entryPoint)
     }
 }
 else {
-    console.error(`Unsupported NodeJS version, expected Node 18.19.0+, Node 20.6.0+ or Node 21+ but found ${major}.${minor}.${patch}`)
-    process.exitCode = 1
+    throw new Error(`Unsupported NodeJS version. ts-run supports Node 18.19.0+, Node 20.6.0+ or Node 21+ (found ${major}.${minor}.${patch}).`)
 }

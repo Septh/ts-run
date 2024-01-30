@@ -3,6 +3,15 @@ declare global {
 		interface Module {
 			_compile(code: string, filename: string): string
 		}
+
+		interface NodeError {
+			code: string
+		}
+
+		type ModuleType = 'commonjs' | 'module'
+		interface PkgType {
+			type?: ModuleType
+		}
 	}
 }
 
