@@ -1,5 +1,3 @@
-/// <reference types="./ambient.d.ts" />
-
 import { transform as _transform, type Transform } from 'sucrase'
 
 const transforms: Record<NodeJS.ModuleType, Transform[]> = {

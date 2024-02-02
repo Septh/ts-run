@@ -1,8 +1,9 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readFile } from 'node:fs/promises'
-import type { InitializeHook, ResolveHook, LoadHook, ModuleSource } from 'node:module'
-import transformer = require('./cjs-transform.cjs')
+import { type InitializeHook, type ResolveHook, type LoadHook, type ModuleSource, createRequire } from 'node:module'
+
+const transformer = createRequire(import.meta.url)('./cjs-transform.cjs')
 
 let self: string
 export const initialize: InitializeHook<string> = data => {

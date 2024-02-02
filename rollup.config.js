@@ -2,7 +2,7 @@
 import nodeExternals from 'rollup-plugin-node-externals'
 import nodeResolve from '@rollup/plugin-node-resolve'
 import commonsJS from '@rollup/plugin-commonjs'
-import typescript from '@rollup/plugin-typescript'
+import typescript from 'rollup-plugin-fast-typescript'
 import terser from '@rollup/plugin-terser'
 import { defineConfig } from 'rollup'
 
@@ -16,29 +16,7 @@ export default defineConfig([
         output: {
             dir: 'lib',
             format: 'esm',
-            exports: 'named',
             generatedCode: 'es2015',
-            sourcemap: true,
-            sourcemapExcludeSources: true
-        },
-        plugins: [
-            nodeExternals(),
-            nodeResolve(),
-            commonsJS({ strictRequires: true }),
-            typescript()
-        ],
-        // Have to use Rollup's `external` option as rollup-plugin-node-externals
-        // only works for dependencies, not individual source files
-        external: /hooks\.js/
-    },
-    {
-        input: 'source/cjs-transform.cts',
-        output: {
-            file: 'lib/cjs-transform.cjs',
-            format: 'commonjs',
-            exports: 'named',
-            generatedCode: 'es2015',
-            esModule: false,
             sourcemap: true,
             sourcemapExcludeSources: true
         },
@@ -46,18 +24,28 @@ export default defineConfig([
             nodeExternals(),
             nodeResolve(),
             commonsJS(),
-            // Not sure why but this is the only way I've found
-            // to have @rollup/plugin-typescript compile this file
-            // the way I wanted.
-            typescript({
-                include: './source/cjs-transform.cts',
-                exclude: './node-modules',
-                compilerOptions: {
-                    rootDir: undefined,
-                    outDir: undefined,
-                    module: undefined,
-                },
-            }),
+            typescript('sucrase')
+        ]
+    },
+
+    // This second Rollup configuration bundles Sucrase's parser to lib/cjs-transform.cjs
+    {
+        input: 'source/cjs-transform.cts',
+        output: {
+            file: 'lib/cjs-transform.cjs',
+            format: 'commonjs',
+            generatedCode: {
+                preset: 'es2015',
+                symbols: false
+            },
+            esModule: false,
+            sourcemap: false,
+        },
+        plugins: [
+            nodeExternals(),
+            nodeResolve(),
+            commonsJS(),
+            typescript('sucrase'),
             terser()
         ],
         // sucrase has MANY circular dependencies :/
