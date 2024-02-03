@@ -2,6 +2,7 @@ import { describe, test } from 'node:test'
 import assert from 'node:assert'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { createRequire } from 'node:module'
 
 describe("A .ts script inside a { type: 'module' } directory is ESM", () => {
 
@@ -30,7 +31,7 @@ describe("A .ts script inside a { type: 'module' } directory is ESM", () => {
     test("require() does not exist", () => {
         let threw = false
         try {
-            require('./foo.ts')
+            require('./foo.cts')
         }
         catch(e) {
             threw = e instanceof ReferenceError
@@ -46,5 +47,16 @@ describe("A .ts script inside a { type: 'module' } directory is ESM", () => {
         }
         catch {}
         assert.strictEqual(url, pathToFileURL(path.resolve('test', 'esm', '01.test.ts')).href)
+    })
+
+    test("createRequire() works", () => {
+        let worked = true
+        try {
+            createRequire(import.meta.url)('./foo.cts')
+        }
+        catch(e) {
+            worked = false
+        }
+        assert.ok(worked)
     })
 })

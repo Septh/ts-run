@@ -17,9 +17,6 @@ describe("A .cts script inside a { type: 'module' } directory is CJS", () => {
     it("require() is available", () => {
         const foo = require('./foo.cts')
         assert.strictEqual(foo, 'foo')
-
-        // const bar = require('./bar.cts')
-        // assert.strictEqual(bar, 'bar')
     })
 
     //

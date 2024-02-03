@@ -9,10 +9,14 @@ interface Unused {
 }
 
 describe("SourceMap v3 support", () => {
-    it("correctly maps stack traces back to original TS code", () => {
+    // Test currently disabled as it turns out that Sucrase guarantees
+    // that line numbers are the same before and after transpile,
+    // making the test completely irrelevant.
+    // See https://github.com/alangpierce/sucrase/issues/654#issuecomment-945491876
+    it.skip("correctly maps stack traces back to original TS code", () => {
         let stack = ''
         try {
-            throw new Error('Stack trace should show line 15, column 19.')
+            throw new Error('Stack trace should show line 19, column 19.')
         }
         catch(e) {
             stack = (e as Error).stack ?? ''
