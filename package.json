@@ -38,7 +38,10 @@
     "ts-run": "./lib/index.js"
   },
   "exports": {
-    "./register": "./lib/index.js"
+    "./register": {
+      "types": "./register.d.ts",
+      "default": "./lib/index.js"
+    }
   },
   "scripts": {
     "prebuild": "rimraf lib",
@@ -61,7 +64,8 @@
   },
   "files": [
     "./lib",
-    "!*.map"
+    "!*.map",
+    "register.d.ts"
   ],
   "publishConfig": {
     "access": "public"
