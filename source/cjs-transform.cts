@@ -10,6 +10,7 @@ export function transform(source: string, format: NodeJS.ModuleType, filePath: s
         transforms: transforms[format],
         preserveDynamicImport: true,
         disableESTransforms: true,
+        injectCreateRequireForImportRequire: true,
         keepUnusedImports: true,
         filePath,
         sourceMapOptions: {

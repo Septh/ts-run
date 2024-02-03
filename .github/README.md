@@ -105,24 +105,6 @@ Conversely, CommonJS features (i.e., things like `__dirname` or `require()`) do 
 
 > If you are not familiar with CommonJS and ESM modules and when NodeJS expects one format or the other, Node's documentation has [a comprehensive guide about modules](https://nodejs.org/docs/latest-v20.x/api/esm.html).
 
-### Import assignments
-`ts-run` relies on Sucrase to transpile TypeScript to JavaScript. Unfortunately, Sucrase translates so called *"import assignements"* to simple `require()` calls, which will make your script crash if it runs in an ESM context.
-
-To prevent crashes, instead of:
-
-```ts
-// ❌ This won't work in ESM mode
-import cjsModule = require('./module.cts')
-```
-
-use:
-
-```ts
-// ✅ This works is ESM mode
-import { createRequire } from 'node:module'
-const cjsModule = createRequire(import.meta.url)('./module.cts')
-```
-
 
 ## Authoring your scripts
 For the reasons stated above, `ts-run` does not need (and in fact, does not even look for) a `tsconfig.json` file.
