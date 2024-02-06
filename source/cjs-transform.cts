@@ -1,4 +1,4 @@
-import { transform as _transform, type Transform } from 'sucrase'
+import { transform as sucrase, type Transform } from 'sucrase'
 
 const transforms: Record<NodeJS.ModuleType, Transform[]> = {
     commonjs: [ 'typescript', 'imports' ],
@@ -6,17 +6,22 @@ const transforms: Record<NodeJS.ModuleType, Transform[]> = {
 }
 
 export function transform(source: string, format: NodeJS.ModuleType, filePath: string) {
-    const { code, sourceMap } = _transform(source, {
+    const { code, sourceMap } = sucrase(source, {
+        filePath,
         transforms: transforms[format],
         preserveDynamicImport: true,
         disableESTransforms: true,
         injectCreateRequireForImportRequire: true,
         keepUnusedImports: true,
-        filePath,
         sourceMapOptions: {
             compiledFilename: filePath
         }
     })
 
-    return { code, sourceMap }
+    sourceMap!.sourceRoot = ''
+    sourceMap!.sources = [ filePath ]
+    // sourceMap.sourcesContent = [ source ]
+
+    return code + '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,'
+                + Buffer.from(JSON.stringify(sourceMap)).toString('base64')
 }

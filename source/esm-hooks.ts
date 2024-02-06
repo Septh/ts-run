@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { readFile } from 'node:fs/promises'
 import { type InitializeHook, type ResolveHook, type LoadHook, type ModuleSource, createRequire } from 'node:module'
 
-const transformer = createRequire(import.meta.url)('./cjs-transform.cjs')
+const { transform } = createRequire(import.meta.url)('./cjs-transform.cjs') as typeof import('./cjs-transform.cjs')
 
 let self: string
 export const initialize: InitializeHook<string> = data => {
@@ -34,13 +34,6 @@ export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
 
     // Normal operation otherwise.
     return nextResolve(specifier, context)
-}
-
-function transpile(source: ModuleSource, format: NodeJS.ModuleType, filePath: string) {
-    const { code, sourceMap } = transformer.transform(source.toString(), format, filePath)
-    return code
-        + '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,'
-        + Buffer.from(JSON.stringify(sourceMap)).toString('base64')
 }
 
 const unknownType = Symbol()
@@ -98,7 +91,7 @@ export const load: LoadHook = async (url, context, nextLoad) => {
     // - if null is returned for `source`, the CJS loader will be used instead
     let { source } = await nextLoad(url, { ...context, format })
     if (source)
-        source = transpile(source, format, filePath)
+        source = transform(source.toString(), format, path.basename(filePath))
 
     return {
         source,
