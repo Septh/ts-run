@@ -1,29 +1,28 @@
 import { describe, it } from 'node:test'
-import assert from 'node:assert'
+import assert from 'node:assert/strict'
 
 // This will simply be removed by Sucrase (5 lines)
-interface Unused {
+export interface Unused {
     one: any
     two: any
     three: any
 }
 
 describe("SourceMap v3 support", () => {
-    // Test currently disabled as it turns out that Sucrase guarantees
-    // that line numbers are the same before and after transpile,
-    // making the test completely irrelevant.
-    // See https://github.com/alangpierce/sucrase/issues/654#issuecomment-945491876
-    it.skip("correctly maps stack traces back to original TS code", () => {
+    // It turns out that Sucrase guarantees that line numbers are the same before and after transpile
+    // (see https://github.com/alangpierce/sucrase/issues/654#issuecomment-945491876),
+    // making this test mostly irrelevant.
+    it("correctly maps stack traces back to original TS code", () => {
         let stack = ''
         try {
-            throw new Error('Stack trace should show line 19, column 19.')
+            // Additional spaces are intentional. column in on the `new` statement.
+            throw   new Error('Stack trace should show line 20, column 21.')
         }
         catch(e) {
             stack = (e as Error).stack ?? ''
         }
 
         const { 1: line, 2: column } = /sourcemap.test.ts:(\d\d):(\d\d)/.exec(stack) ?? []
-        assert.strictEqual(line, '15')
-        assert.strictEqual(column, '19')
+        assert.deepEqual({ line: '19', column: '21' }, { line, column })
     })
 })
