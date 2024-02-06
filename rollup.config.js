@@ -1,4 +1,6 @@
 // @ts-check
+import path from 'node:path'
+import { readFile } from 'fs/promises'
 import nodeExternals from 'rollup-plugin-node-externals'
 import nodeResolve from '@rollup/plugin-node-resolve'
 import commonsJS from '@rollup/plugin-commonjs'
@@ -17,15 +19,16 @@ export default defineConfig([
             dir: 'lib',
             format: 'esm',
             generatedCode: 'es2015',
-            sourcemap: true,
+            sourcemap: "hidden",
             sourcemapExcludeSources: true
         },
         plugins: [
             nodeExternals(),
-            nodeResolve(),
-            commonsJS(),
             typescript('sucrase')
-        ]
+        ],
+        // Have to use Rollup's external option as rollup-plugin-node-externals
+        // only works for Node builtins and npm dependencies.
+        external: /(?:esm|cjs)-hooks.js$/
     },
 
     // This second Rollup configuration bundles Sucrase's parser to lib/cjs-transform.cjs
@@ -46,7 +49,18 @@ export default defineConfig([
             nodeResolve(),
             commonsJS(),
             typescript('sucrase'),
-            terser()
+            terser(),
+
+            // This plugin fixes https://github.com/alangpierce/sucrase/issues/825
+            // until the fix is merged upstream.
+            {
+                name: 'fix-sucrase',
+                async load(id) {
+                    return id.endsWith('computeSourceMap.js')
+                        ? readFile(path.resolve('./source/fix-sucrase/computeSourceMap.js'), 'utf-8')
+                        : null
+                }
+            }
         ],
         // sucrase has MANY circular dependencies :/
         onLog(level, log, handler) {

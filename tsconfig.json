@@ -9,8 +9,8 @@
     "outDir": "lib",
     "target": "ESNext",
     "module": "Node16",
-    "sourceMap": true,
-    "removeComments": true,
+    "checkJs": false,
+    "noEmit": true,
 
     // Libs
     "lib": [ "ESNext" ],
