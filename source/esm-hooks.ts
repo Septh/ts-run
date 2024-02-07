@@ -1,13 +1,15 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readFile } from 'node:fs/promises'
-import { type InitializeHook, type ResolveHook, type LoadHook, type ModuleSource, createRequire } from 'node:module'
+import { createRequire, type InitializeHook, type ResolveHook, type LoadHook } from 'node:module'
 
 const { transform } = createRequire(import.meta.url)('./cjs-transform.cjs') as typeof import('./cjs-transform.cjs')
 
 let self: string
-export const initialize: InitializeHook<string> = data => {
-    self = data
+let defaultModuleType: ModuleType
+export const initialize: InitializeHook<InitializeHookData> = data => {
+    self = data.self
+    defaultModuleType = data.defaultModuleType
 }
 
 export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
@@ -37,8 +39,8 @@ export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
 }
 
 const unknownType = Symbol()
-const pkgTypeCache = new Map<string, NodeJS.ModuleType | Symbol>()
-async function nearestPackageType(file: string): Promise<NodeJS.ModuleType> {
+const pkgTypeCache = new Map<string, ModuleType | Symbol>()
+async function nearestPackageType(file: string): Promise<ModuleType> {
     for (
         let current = path.dirname(file), previous: string | undefined = undefined;
         previous !== current;
@@ -48,9 +50,9 @@ async function nearestPackageType(file: string): Promise<NodeJS.ModuleType> {
         let format = pkgTypeCache.get(pkgFile)
         if (!format) {
             format = await readFile(pkgFile, 'utf-8')
-                .then(data => (JSON.parse(data) as NodeJS.PkgType).type ?? unknownType)
+                .then(data => (JSON.parse(data) as PkgType).type ?? unknownType)
                 .catch(err => {
-                    const { code } = err as NodeJS.NodeError
+                    const { code } = err as NodeJS.ErrnoException
                     if (code !== 'ENOENT')
                         console.error(err)
                     return unknownType
@@ -62,8 +64,7 @@ async function nearestPackageType(file: string): Promise<NodeJS.ModuleType> {
             return format
     }
 
-    // TODO: decide default format based on --experimental-default-type
-    return 'commonjs'
+    return defaultModuleType
 }
 
 export const load: LoadHook = async (url, context, nextLoad) => {
@@ -77,7 +78,7 @@ export const load: LoadHook = async (url, context, nextLoad) => {
     // Determine the output format based on the file's extension
     // or the nearest package.json's `type` field.
     const filePath = fileURLToPath(url)
-    const format: NodeJS.ModuleType = (
+    const format: ModuleType = (
         ext[1] === '.ts'
             ? await nearestPackageType(filePath)
             : ext[1] === '.mts'

@@ -19,7 +19,7 @@ export default defineConfig([
             dir: 'lib',
             format: 'esm',
             generatedCode: 'es2015',
-            sourcemap: "hidden",
+            sourcemap: true,
             sourcemapExcludeSources: true
         },
         plugins: [

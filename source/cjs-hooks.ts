@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 
 const require = createRequire(import.meta.url)
 
-function transpile(m: Module, format: NodeJS.ModuleType, filePath: string) {
+function transpile(m: Module, format: ModuleType, filePath: string) {
     // Notes:
     // - This function is called by the CJS loader so it must be sync.
     // - We lazy-load Sucrase as the CJS loader may well never be used
@@ -18,8 +18,8 @@ function transpile(m: Module, format: NodeJS.ModuleType, filePath: string) {
 }
 
 const unknownType = Symbol()
-const pkgTypeCache = new Map<string, NodeJS.ModuleType | Symbol>()
-function nearestPackageType(file: string): NodeJS.ModuleType {
+const pkgTypeCache = new Map<string, ModuleType | Symbol>()
+function nearestPackageType(file: string, defaultType: ModuleType): ModuleType {
     for (
         let current = path.dirname(file), previous: string | undefined = undefined;
         previous !== current;
@@ -30,13 +30,13 @@ function nearestPackageType(file: string): NodeJS.ModuleType {
         if (!format) {
             try {
                 const data = readFileSync(pkgFile, 'utf-8')
-                const { type } = JSON.parse(data) as NodeJS.PkgType
+                const { type } = JSON.parse(data) as PkgType
                 format = type === 'module' || type ==='commonjs'
                     ? type
                     : unknownType
             }
             catch(err) {
-                const { code } = err as NodeJS.NodeError
+                const { code } = err as NodeJS.ErrnoException
                 if (code !== 'ENOENT')
                     console.error(err)
                 format = unknownType
@@ -49,12 +49,11 @@ function nearestPackageType(file: string): NodeJS.ModuleType {
             return format
     }
 
-    // TODO: decide default format based on --experimental-default-type
-    return 'commonjs'
+    return defaultType
 }
 
-export function install_cjs_hooks() {
-    Module._extensions['.ts']  = (m, filename) => transpile(m, nearestPackageType(filename), filename)
+export function install_cjs_hooks(defaultType: ModuleType) {
+    Module._extensions['.ts']  = (m, filename) => transpile(m, nearestPackageType(filename, defaultType), filename)
     Module._extensions['.cts'] = (m, filename) => transpile(m, 'commonjs', filename)
     Module._extensions['.mts'] = (m, filename) => transpile(m, 'module', filename)
 }

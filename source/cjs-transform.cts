@@ -1,11 +1,11 @@
-import { transform as sucrase, type Transform } from 'sucrase'
+import { transform as sucrase, type Transform, type TransformResult } from 'sucrase'
 
-const transforms: Record<NodeJS.ModuleType, Transform[]> = {
+const transforms: Record<ModuleType, Transform[]> = {
     commonjs: [ 'typescript', 'imports' ],
     module: [ 'typescript' ]
 }
 
-export function transform(source: string, format: NodeJS.ModuleType, filePath: string) {
+export function transform(source: string, format: ModuleType, filePath: string) {
     const { code, sourceMap } = sucrase(source, {
         filePath,
         transforms: transforms[format],
@@ -16,10 +16,10 @@ export function transform(source: string, format: NodeJS.ModuleType, filePath: s
         sourceMapOptions: {
             compiledFilename: filePath
         }
-    })
+    }) as Required<TransformResult>
 
-    sourceMap!.sourceRoot = ''
-    sourceMap!.sources = [ filePath ]
+    sourceMap.sourceRoot = ''
+    sourceMap.sources = [ filePath ]
     // sourceMap.sourcesContent = [ source ]
 
     return code + '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,'

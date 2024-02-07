@@ -11,16 +11,31 @@ if (
     || (major === 20 && minor >= 6)
     || (major === 18 && minor >= 19)
 ) {
-    const self = import.meta.url
+
+    // Determine the default module type.
+    let defaultModuleType: ModuleType = 'commonjs'
+    const argc = process.execArgv.findIndex(arg => arg.startsWith('--experimental-default-type'))
+    if (argc >= 0) {
+        const argv = process.execArgv[argc].split('=')
+        const type = argv.length === 1
+            ? process.execArgv[argc + 1]
+            : argv[1]
+        if (type === 'module' || type === 'commonjs')
+            defaultModuleType = type
+    }
 
     // Install the esm hooks -- those are run in a worker thread.
-    Module.register('./esm-hooks.js', {
+    const self = import.meta.url
+    Module.register<InitializeHookData>('./esm-hooks.js', {
         parentURL: self,
-        data: self
+        data: {
+            self,
+            defaultModuleType
+        }
     })
 
     // Install the cjs hooks -- those are run synchronously in the main thread.
-    install_cjs_hooks()
+    install_cjs_hooks(defaultModuleType)
 
     // Enable source map support.
     process.setSourceMapsEnabled(true)
