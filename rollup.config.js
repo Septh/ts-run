@@ -52,7 +52,6 @@ export default defineConfig([
             terser(),
 
             // This plugin fixes https://github.com/alangpierce/sucrase/issues/825
-            // until the fix is merged upstream.
             {
                 name: 'fix-sucrase',
                 async load(id) {

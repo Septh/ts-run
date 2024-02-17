@@ -71,16 +71,12 @@ export default function computeSourceMap(
  * position of the token.
  */
 function computeSourceColumns(code, tokens) {
-  // This line fixes https://github.com/alangpierce/sucrase/issues/825
-  // until the fix is merged upstream.
-  tokens = tokens.filter((token) => token.end > token.start || token.type === 6144);  // TokenType.eof
-
   const sourceColumns = new Array(tokens.length);
   let tokenIndex = 0;
   let currentMapping = tokens[tokenIndex].start;
   let lineStart = 0;
   for (let i = 0; i < code.length; i++) {
-    if (i === currentMapping) {
+    if (i >= currentMapping) {      // <-- line changed (@septh)
       sourceColumns[tokenIndex] = currentMapping - lineStart;
       tokenIndex++;
       currentMapping = tokens[tokenIndex].start;
