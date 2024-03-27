@@ -69,9 +69,5 @@
   ],
   "publishConfig": {
     "access": "public"
-  },
-  "np": {
-    "yarn": false,
-    "cleanup": false
   }
 }

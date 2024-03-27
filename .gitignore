@@ -2,3 +2,4 @@ node_modules/
 /lib
 zz*
 *.tgz
+.np-config.json
