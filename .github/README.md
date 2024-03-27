@@ -18,7 +18,7 @@
 
 
 ## About
-`ts-run` is a CLI command that you can use to run TypeScripts scripts in NodeJS as if they were written in plain JavaScript. It is a simple as:
+`ts-run` is a CLI command that you can use to run TypeScript scripts in NodeJS as if they were written in plain JavaScript. It is a simple as:
 
 ```sh
 ts-run ./some-script.ts
