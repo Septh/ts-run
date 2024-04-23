@@ -1,20 +1,20 @@
-import { describe, it } from 'node:test'
+import { describe, test } from 'node:test'
 import assert from 'node:assert'
 import path from 'node:path'
 
 describe("A .cts script inside a { type: 'module' } directory is CJS", () => {
 
     // cwd must be ts-run's root directory for this to work
-    it("__dirname is available", () => {
+    test("__dirname is available", () => {
         assert.strictEqual(__dirname, path.resolve('test', 'esm'))
     })
 
     // cwd must be ts-run's root directory for this to work
-    it("__filename is available", () => {
+    test("__filename is available", () => {
         assert.strictEqual(__filename, path.resolve('test', 'esm', '02.test.cts'))
     })
 
-    it("require() is available", () => {
+    test("require() is available", () => {
         const foo = require('./foo.cts')
         assert.strictEqual(foo, 'foo')
     })

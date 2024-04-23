@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test'
+import { describe, test } from 'node:test'
 import assert from 'node:assert'
 import path from 'node:path'
 import * as globallyImportedQux from './qux.ts'
@@ -6,31 +6,31 @@ import * as globallyImportedQux from './qux.ts'
 describe("A .ts script inside a { type: 'commonjs' } directory is CJS", () => {
 
     // cwd must be ts-run's root directory for this to work
-    it("__dirname is available", () => {
+    test("__dirname is available", () => {
         assert.strictEqual(__dirname, path.resolve('test', 'cjs'))
     })
 
     // cwd must be ts-run's root directory for this to work
-    it("__filename is available", () => {
+    test("__filename is available", () => {
         assert.strictEqual(__filename, path.resolve('test', 'cjs', '01.test.ts'))
     })
 
-    it("import statements are turned into require calls", () => {
+    test("import statements are turned into require calls", () => {
         const { qux } = globallyImportedQux as any
         assert.strictEqual(qux, 'qux')
     })
 
-    it("require() is available", () => {
+    test("require() is available", () => {
         const foo = require('./foo.ts')
         assert.strictEqual(foo, 'foo')
     })
 
-    it("extension-less require() specifiers are supported", () => {
+    test("extension-less require() specifiers are supported", () => {
         const bar = require('./bar')
         assert.strictEqual(bar, 'bar')
     })
 
-    it("directory imports are supported when using require()", () => {
+    test("directory imports are supported when using require()", () => {
         const baz = require('./baz')
         assert.strictEqual(baz, 'baz')
     })
