@@ -1,4 +1,3 @@
-// @ts-check
 import path from 'node:path'
 import { readFile } from 'fs/promises'
 import nodeExternals from 'rollup-plugin-node-externals'
@@ -9,6 +8,9 @@ import terser from '@rollup/plugin-terser'
 import { defineConfig } from 'rollup'
 
 export default defineConfig([
+    // The main entry points are not really bundled, they're only transpiled from TS to JS.
+    // We could use tsc itself for this but since we need Rollup to bundle Sucrase anyway,
+    // this configuration spares us a separate build step.
     {
         input: [
             'source/index.ts',
@@ -27,11 +29,11 @@ export default defineConfig([
             typescript('sucrase')
         ],
         // Have to use Rollup's external option as rollup-plugin-node-externals
-        // only works for Node builtins and npm dependencies.
+        // only applies to Node builtins and npm dependencies.
         external: /(?:esm|cjs)-hooks.js$/
     },
 
-    // This second Rollup configuration bundles Sucrase's parser to lib/cjs-transform.cjs
+    // This second configuration bundles Sucrase's parser to lib/cjs-transform.cjs
     {
         input: 'source/cjs-transform.cts',
         output: {
@@ -52,6 +54,7 @@ export default defineConfig([
             terser(),
 
             // This plugin fixes https://github.com/alangpierce/sucrase/issues/825
+            // by replacing sucrase's computeSourceMap.js with our own.
             {
                 name: 'fix-sucrase',
                 async load(id) {

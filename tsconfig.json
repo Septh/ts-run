@@ -1,15 +1,20 @@
 {
-  "include": [ "source" ],
+  "include": [
+    "source",
+    "rollup.config.js"
+  ],
+  "exclude": [
+    "source/fix-sucrase"
+  ],
   "compilerOptions": {
 
     // Input
-    "rootDir": "source",
+    "moduleResolution": "Bundler",
 
     // Output
-    "outDir": "lib",
     "target": "ESNext",
-    "module": "Node16",
-    "checkJs": false,
+    "module": "ESNext",
+    "checkJs": true,
     "noEmit": true,
 
     // Libs
