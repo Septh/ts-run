@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 
 const require = createRequire(import.meta.url)
 
-function transpile(m: Module, format: ModuleType, filePath: string) {
+function transpile(m: Module, format: NodeJS.ModuleType, filePath: string) {
     // Notes:
     // - This function is called by the CJS loader so it must be sync.
     // - We lazy-load Sucrase as the CJS loader may well never be used
@@ -18,8 +18,8 @@ function transpile(m: Module, format: ModuleType, filePath: string) {
 }
 
 const unknownType = Symbol()
-const pkgTypeCache = new Map<string, ModuleType | Symbol>()
-function nearestPackageType(file: string, defaultType: ModuleType): ModuleType {
+const pkgTypeCache = new Map<string, NodeJS.ModuleType | Symbol>()
+function nearestPackageType(file: string, defaultType: NodeJS.ModuleType): NodeJS.ModuleType {
     for (
         let current = path.dirname(file), previous: string | undefined = undefined;
         previous !== current;
@@ -30,7 +30,7 @@ function nearestPackageType(file: string, defaultType: ModuleType): ModuleType {
         if (!format) {
             try {
                 const data = readFileSync(pkgFile, 'utf-8')
-                const { type } = JSON.parse(data) as PkgType
+                const { type } = JSON.parse(data) as NodeJS.PackageType
                 format = type === 'module' || type ==='commonjs'
                     ? type
                     : unknownType
@@ -52,7 +52,7 @@ function nearestPackageType(file: string, defaultType: ModuleType): ModuleType {
     return defaultType
 }
 
-export function install_cjs_hooks(defaultType: ModuleType) {
+export function install_cjs_hooks(defaultType: NodeJS.ModuleType) {
     Module._extensions['.ts']  = (m, filename) => transpile(m, nearestPackageType(filename, defaultType), filename)
     Module._extensions['.cts'] = (m, filename) => transpile(m, 'commonjs', filename)
     Module._extensions['.mts'] = (m, filename) => transpile(m, 'module', filename)

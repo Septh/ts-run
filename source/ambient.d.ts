@@ -1,18 +1,18 @@
 declare global {
-    type ModuleType = 'commonjs' | 'module'
-
-    // In package.json.
-    interface PkgType {
-        type?: ModuleType
-    }
-
-    // The data passed to the initialize() hook.
-    interface InitializeHookData {
-        self: string
-        defaultModuleType: ModuleType
-    }
-
     namespace NodeJS {
+        type ModuleType = 'commonjs' | 'module'
+
+        // In package.json.
+        interface PackageType {
+            type?: ModuleType
+        }
+
+        // The data passed to the initialize() hook.
+        interface InitializeHookData {
+            self: string
+            defaultModuleType: ModuleType
+        }
+
         interface Module {
             _compile(code: string, filename: string): string
         }
@@ -24,4 +24,4 @@ declare module 'module' {
 }
 
 // This file needs to be a module
-export { }
+export {}

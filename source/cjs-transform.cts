@@ -1,11 +1,11 @@
 import { transform as sucrase, type Transform, type TransformResult } from 'sucrase'
 
-const transforms: Record<ModuleType, Transform[]> = {
+const transforms: Record<NodeJS.ModuleType, Transform[]> = {
     commonjs: [ 'typescript', 'imports' ],
     module: [ 'typescript' ]
 }
 
-export function transform(source: string, format: ModuleType, filePath: string) {
+export function transform(source: string, format: NodeJS.ModuleType, filePath: string) {
     const { code, sourceMap } = sucrase(source, {
         filePath,
         transforms: transforms[format],

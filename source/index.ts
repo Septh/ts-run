@@ -13,7 +13,7 @@ if (
 ) {
 
     // Determine the default module type.
-    let defaultModuleType: ModuleType = 'commonjs'
+    let defaultModuleType: NodeJS.ModuleType = 'commonjs'
     const argc = process.execArgv.findIndex(arg => arg.startsWith('--experimental-default-type'))
     if (argc >= 0) {
         const argv = process.execArgv[argc].split('=')
@@ -26,7 +26,7 @@ if (
 
     // Install the esm hooks -- those are run in a worker thread.
     const self = import.meta.url
-    Module.register<InitializeHookData>('./esm-hooks.js', {
+    Module.register<NodeJS.InitializeHookData>('./esm-hooks.js', {
         parentURL: self,
         data: {
             self,
@@ -58,5 +58,5 @@ if (
     }
 }
 else {
-    throw new Error(`Unsupported NodeJS version. ts-run supports Node 18.19.0+, Node 20.6.0+ or Node 21+ (found ${major}.${minor}.${patch}).`)
+    throw new Error(`Unsupported NodeJS version ${major}.${minor}.${patch}. ts-run requires Node 18.19.0+, Node 20.6.0+ or Node 21+.`)
 }

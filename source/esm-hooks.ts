@@ -6,8 +6,8 @@ import { createRequire, type InitializeHook, type ResolveHook, type LoadHook } f
 const { transform } = createRequire(import.meta.url)('./cjs-transform.cjs') as typeof import('./cjs-transform.cjs')
 
 let self: string
-let defaultModuleType: ModuleType
-export const initialize: InitializeHook<InitializeHookData> = data => {
+let defaultModuleType: NodeJS.ModuleType
+export const initialize: InitializeHook<NodeJS.InitializeHookData> = data => {
     self = data.self
     defaultModuleType = data.defaultModuleType
 }
@@ -39,8 +39,8 @@ export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
 }
 
 const unknownType = Symbol()
-const pkgTypeCache = new Map<string, ModuleType | Symbol>()
-async function nearestPackageType(file: string): Promise<ModuleType> {
+const pkgTypeCache = new Map<string, NodeJS.ModuleType | Symbol>()
+async function nearestPackageType(file: string): Promise<NodeJS.ModuleType> {
     for (
         let current = path.dirname(file), previous: string | undefined = undefined;
         previous !== current;
@@ -50,7 +50,7 @@ async function nearestPackageType(file: string): Promise<ModuleType> {
         let format = pkgTypeCache.get(pkgFile)
         if (!format) {
             format = await readFile(pkgFile, 'utf-8')
-                .then(data => (JSON.parse(data) as PkgType).type ?? unknownType)
+                .then(data => (JSON.parse(data) as NodeJS.PackageType).type ?? unknownType)
                 .catch(err => {
                     const { code } = err as NodeJS.ErrnoException
                     if (code !== 'ENOENT')
@@ -78,7 +78,7 @@ export const load: LoadHook = async (url, context, nextLoad) => {
     // Determine the output format based on the file's extension
     // or the nearest package.json's `type` field.
     const filePath = fileURLToPath(url)
-    const format: ModuleType = (
+    const format: NodeJS.ModuleType = (
         ext[1] === '.ts'
             ? await nearestPackageType(filePath)
             : ext[1] === '.mts'
