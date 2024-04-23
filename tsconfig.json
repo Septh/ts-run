@@ -1,6 +1,7 @@
 {
   "include": [
     "source",
+    "test",
     "rollup.config.js"
   ],
   "exclude": [
