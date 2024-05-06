@@ -11,7 +11,7 @@ function transpile(m: Module, format: NodeJS.ModuleType, filePath: string) {
     //   at all, as ESM scripts are becoming more and more frequent.
     //   This infers a very small performance penalty when transpile() is called
     //   for the fist time, but we'll live with it.
-    const { transform } = require('./cjs-transform.cjs') as typeof import('./cjs-transform.cjs')
+    const { transform } = require('./transform.cjs') as typeof import('./transform.cjs')
     const source = readFileSync(filePath).toString()
     const code = transform(source, format, path.basename(filePath))
     return m._compile(code, filePath)

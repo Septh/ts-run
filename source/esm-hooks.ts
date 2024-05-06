@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { readFile } from 'node:fs/promises'
 import { createRequire, type InitializeHook, type ResolveHook, type LoadHook } from 'node:module'
 
-const { transform } = createRequire(import.meta.url)('./cjs-transform.cjs') as typeof import('./cjs-transform.cjs')
+const { transform } = createRequire(import.meta.url)('./transform.cjs') as typeof import('./transform.cjs')
 
 let self: string
 let defaultModuleType: NodeJS.ModuleType

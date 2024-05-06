@@ -35,9 +35,9 @@ export default defineConfig([
 
     // This second configuration bundles Sucrase's parser to lib/cjs-transform.cjs
     {
-        input: 'source/cjs-transform.cts',
+        input: 'source/transform.cts',
         output: {
-            file: 'lib/cjs-transform.cjs',
+            file: 'lib/transform.cjs',
             format: 'commonjs',
             generatedCode: {
                 preset: 'es2015',
