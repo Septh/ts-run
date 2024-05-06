@@ -3,7 +3,7 @@ import { readFile } from 'fs/promises'
 import nodeExternals from 'rollup-plugin-node-externals'
 import nodeResolve from '@rollup/plugin-node-resolve'
 import commonsJS from '@rollup/plugin-commonjs'
-import typescript from 'rollup-plugin-fast-typescript'
+import { sucrase } from 'rollup-plugin-fast-typescript'
 import terser from '@rollup/plugin-terser'
 import { defineConfig } from 'rollup'
 
@@ -26,7 +26,7 @@ export default defineConfig([
         },
         plugins: [
             nodeExternals(),
-            typescript('sucrase')
+            sucrase()
         ],
         // Have to use Rollup's external option as rollup-plugin-node-externals
         // only applies to Node builtins and npm dependencies.
@@ -50,7 +50,7 @@ export default defineConfig([
             nodeExternals(),
             nodeResolve(),
             commonsJS(),
-            typescript('sucrase'),
+            sucrase(),
             terser(),
 
             // This plugin fixes https://github.com/alangpierce/sucrase/issues/825
