@@ -12,7 +12,6 @@ export function transform(source: string, format: NodeJS.ModuleType, filePath: s
         preserveDynamicImport: true,
         disableESTransforms: true,
         injectCreateRequireForImportRequire: true,
-        keepUnusedImports: true,
         sourceMapOptions: {
             compiledFilename: filePath
         }

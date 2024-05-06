@@ -88,7 +88,12 @@ Use the `.ts`, `.mts` or `.cts` extensions when importing modules. They are mand
 import { something } from './utilities.ts'
 ```
 
-Contrary to the TypeScript compiler or other tools like `ts-node`, `tsx` or `tsimp`, `ts-run` will not try and find a corresponding `.ts` file if you use a `.js` specifier.
+Contrary to the TypeScript compiler or other tools like `ts-node`, `tsx` or `tsimp`, `ts-run` will *not* try and find a corresponding `.ts` file if you use a `.js` specifier. See the [authoring section](#authoring-your-scripts) for details on how to enable .ts extension imports.
+
+### Type-only imports and exports
+It is generally better to be explicit about type-only imports and exports by using TypeScript's `import type ...`, `import { type ...}` and `export type ...` syntax.
+
+>New in 1.2.3:<br>However, because not everyone is willing to type the extra characters, `ts-run` will now automatically remove type-only imports and exports. (see [Sucrase documentation](https://github.com/alangpierce/sucrase#transforms) for more info).
 
 ### ESM vs CommonJS
 `ts-run`'s sole role is to transpile TypeScript code to JavaScript code, no more, no less. It does not try to convert scripts from CommonJS to ESM or vice-versa, it does not try to optimize or minify your code and it does not downlevel nor polyfill JavaScript.
