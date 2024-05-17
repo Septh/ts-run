@@ -24,7 +24,7 @@ if (
             defaultModuleType = type
     }
 
-    // Install the esm hooks -- those are run in a worker thread.
+    // Register the esm hooks -- those are run in a worker thread.
     const self = import.meta.url
     Module.register<NodeJS.InitializeHookData>('./esm-hooks.js', {
         parentURL: self,

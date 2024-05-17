@@ -15,7 +15,6 @@
     // Output
     "target": "ESNext",
     "module": "ESNext",
-    "checkJs": true,
     "noEmit": true,
 
     // Libs
@@ -34,6 +33,7 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": false,
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "checkJs": true
   }
 }

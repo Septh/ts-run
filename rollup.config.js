@@ -33,7 +33,7 @@ export default defineConfig([
         external: /(?:esm|cjs)-hooks.js$/
     },
 
-    // This second configuration bundles Sucrase's parser to lib/cjs-transform.cjs
+    // This second configuration bundles Sucrase's parser to lib/transform.cjs
     {
         input: 'source/transform.cts',
         output: {
@@ -54,7 +54,7 @@ export default defineConfig([
             terser(),
 
             // This plugin fixes https://github.com/alangpierce/sucrase/issues/825
-            // by replacing sucrase's computeSourceMap.js with our own.
+            // by replacing Sucrase's computeSourceMap.js with our own.
             {
                 name: 'fix-sucrase',
                 async load(id) {
@@ -64,7 +64,7 @@ export default defineConfig([
                 }
             }
         ],
-        // sucrase has MANY circular dependencies :/
+        // Sucrase has MANY circular dependencies :/
         onLog(level, log, handler) {
             if (log.code === 'CIRCULAR_DEPENDENCY')
                 return

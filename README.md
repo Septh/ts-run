@@ -1,7 +1,7 @@
 # ts-run
 > The minimalist TypeScript script runner for NodeJS.
 
-Runs TypeScript scripts from the command line as if they were written in plain JavaScript:
+Run TypeScript scripts from the command line as if they were written in plain JavaScript:
 
 ```sh
 ts-run ./some-script.ts

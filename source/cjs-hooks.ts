@@ -30,7 +30,7 @@ function nearestPackageType(file: string, defaultType: NodeJS.ModuleType): NodeJ
         if (!format) {
             try {
                 const data = readFileSync(pkgFile, 'utf-8')
-                const { type } = JSON.parse(data) as NodeJS.PackageType
+                const { type } = JSON.parse(data) as PackageJson
                 format = type === 'module' || type ==='commonjs'
                     ? type
                     : unknownType
