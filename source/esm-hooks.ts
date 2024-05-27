@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { readFile } from 'node:fs/promises'
 import { createRequire, type InitializeHook, type ResolveHook, type LoadHook } from 'node:module'
 
@@ -25,7 +25,9 @@ export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
             parentURL: undefined
         }
 
-        if (/^\w/.test(specifier) && !path.isAbsolute(specifier))
+        if (path.isAbsolute(specifier))
+            specifier = pathToFileURL(specifier).href
+        else if (/^\w/.test(specifier))
             specifier = './' + specifier
 
         return {

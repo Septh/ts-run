@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
-import Module from 'node:module'
+import module from 'node:module'
 import { realpath } from 'node:fs/promises'
 import { install_cjs_hooks } from './cjs-hooks.js'
 
@@ -26,7 +26,7 @@ if (
 
     // Register the esm hooks -- those are run in a worker thread.
     const self = import.meta.url
-    Module.register<NodeJS.InitializeHookData>('./esm-hooks.js', {
+    module.register<NodeJS.InitializeHookData>('./esm-hooks.js', {
         parentURL: self,
         data: {
             self,
@@ -44,17 +44,31 @@ if (
     // `ts-run <script>` or `node path/to/this/file.js <script>`,
     // get the name of the real entry point from the command line,
     // remove us from argv then dynamically import the real entry point.
-    const entryPoint = process.argv[2]
-    if (process.argv[1] === fileURLToPath(self) && entryPoint) {
-        try {
-            process.argv[1] = await realpath(entryPoint)
-        }
-        catch {
-            process.argv[1] = path.resolve(entryPoint)
-        }
-        process.argv.splice(2, 1)
+    if (process.argv[1] === fileURLToPath(self)) {
 
-        await import(entryPoint)
+        let entryPointIndex = -1
+        for (let i = 2; i < process.argv.length; i++) {
+            const arg = process.argv[i]
+            if (arg === '--')
+                break
+            if (arg.startsWith('-'))
+                continue
+            entryPointIndex = i
+            break
+        }
+
+        if (entryPointIndex > 0) {
+            const entryPoint = process.argv[entryPointIndex];
+            try {
+                process.argv[1] = await realpath(entryPoint);
+            }
+            catch {
+                process.argv[1] = path.resolve(entryPoint);
+            }
+            process.argv.splice(entryPointIndex, 1);
+
+            await import(entryPoint);
+        }
     }
 }
 else {
