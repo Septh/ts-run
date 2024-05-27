@@ -58,16 +58,16 @@ if (
         }
 
         if (entryPointIndex > 0) {
-            const entryPoint = process.argv[entryPointIndex];
+            const entryPoint = process.argv[entryPointIndex]
             try {
-                process.argv[1] = await realpath(entryPoint);
+                process.argv[1] = await realpath(entryPoint)
             }
             catch {
-                process.argv[1] = path.resolve(entryPoint);
+                process.argv[1] = path.resolve(entryPoint)
             }
-            process.argv.splice(entryPointIndex, 1);
+            process.argv.splice(entryPointIndex, 1)
 
-            await import(entryPoint);
+            await import(entryPoint)
         }
         else if (process.argv.includes('-v')) {
             const { name, version } = module.createRequire(self)('../package.json')
