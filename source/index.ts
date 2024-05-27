@@ -69,6 +69,10 @@ if (
 
             await import(entryPoint);
         }
+        else if (process.argv.includes('-v')) {
+            const { name, version } = module.createRequire(self)('../package.json')
+            console.log(`Node.js ${process.version}, ${name.split('/').pop()} v${version}`)
+        }
     }
 }
 else {
