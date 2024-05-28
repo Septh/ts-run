@@ -14,12 +14,9 @@ if (
 
     // Determine the default module type.
     let defaultModuleType: NodeJS.ModuleType = 'commonjs'
-    const argc = process.execArgv.findIndex(arg => arg.startsWith('--experimental-default-type'))
-    if (argc >= 0) {
-        const argv = process.execArgv[argc].split('=')
-        const type = argv.length === 1
-            ? process.execArgv[argc + 1]
-            : argv[1]
+    const argIndex = process.execArgv.findIndex(arg => arg.startsWith('--experimental-default-type'))
+    if (argIndex >= 0) {
+        const type = process.execArgv[argIndex].split('=')[1] || process.execArgv[argIndex + 1]
         if (type === 'module' || type === 'commonjs')
             defaultModuleType = type
     }
@@ -70,8 +67,8 @@ if (
             await import(entryPoint)
         }
         else if (process.argv.includes('-v')) {
-            const { name, version } = module.createRequire(self)('../package.json')
-            console.log(`Node.js ${process.version}, ${name.split('/').pop()} v${version}`)
+            const { name, version } = module.createRequire(self)('../package.json') as typeof import('../package.json')
+            console.log(`Node.js v${major}.${minor}.${patch}, ${name.split('/').pop()} v${version}`)
         }
     }
 }
