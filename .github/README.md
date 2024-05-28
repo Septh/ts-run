@@ -3,10 +3,10 @@
 
 ### Features
 - On-demand TypeScript transpilation so fast you won't even notice.
-- Strictly follows modern Node semantics for ESM / CommonJS modules.
 - Supports source maps for accurate stack traces.
 - Does not spawn another process to transpile TypeScript.
 - Does not spawn another Node process to run your script.
+- Strictly follows modern Node semantics for ESM / CommonJS modules.
 - Zero config: no config file, no command line arguments, no environment variables, no nothing.
 - Does not even need a `tsconfig.json` (though you may need one for *authoring* your scripts -- keep reading below).
 - Light: only 220 kilobytes installed!
@@ -24,7 +24,7 @@
 ts-run ./some-script.ts
 ```
 
-The idea is that you take advantage of your IntelliSense-compatible editor to author your scripts with full type checking on, and `ts-run` will transparently run them (using a bundled [Sucrase](https://github.com/alangpierce/sucrase)'s parser under the hood) without you having to run the TypeScript compliler beforehand.
+The idea is that you take advantage of your IntelliSense-compatible editor to author your scripts with full type checking on, and `ts-run` will transparently run them without you having to run the TypeScript compliler beforehand.
 
 
 ## Installation and usage
@@ -71,15 +71,9 @@ or from the command line:
 npx ts-run ./scripts/do-something.ts
 ```
 
-> #### Note:
-> `ts-run` is not a wrapper around Node, it *is* Node with a (tiny) preload script that transpiles TypeScript to JavaScript. Therefore, all Node command-line options and flags are available, e.g.:
->
-> ```sh
-> ts-run --no-warnings some-script.ts
-> ```
-
 
 ## TypeScript to JavaScript considerations
+`ts-run`'s sole role is to transpile TypeScript code to JavaScript code, no more, no less. It does not try to optimize or minify your code and it does not downlevel nor polyfill JavaScript. Therefore, there are a few things you should keep in mind while authoring your scripts.
 
 ### import specifiers
 Use the `.ts`, `.mts` or `.cts` extensions when importing modules. They are mandatory in ESM modules and highly recommended in CJS modules.
@@ -88,33 +82,19 @@ Use the `.ts`, `.mts` or `.cts` extensions when importing modules. They are mand
 import { something } from './utilities.ts'
 ```
 
-Contrary to the TypeScript compiler or other tools like `ts-node`, `tsx` or `tsimp`, `ts-run` will *not* try and find a corresponding `.ts` file if you use a `.js` specifier. See the [authoring section](#authoring-your-scripts) for details on how to enable .ts extension imports.
+Contrary to the TypeScript compiler, `ts-run` will *not* try and find a corresponding `.ts` file if you use a `.js` specifier. See the [authoring section](#authoring-your-scripts) for details on how to enable `.ts` extension imports.
 
 ### Type-only imports and exports
-It is generally better to be explicit about type-only imports and exports by using TypeScript's `import type ...`, `import { type ...}` and `export type ...` syntax.
+I find it generally better to be explicit about type-only imports and exports by using TypeScript's `import type ...`, `import { type ...}` and `export type ...` syntax.
 
->New in 1.2.3:<br>However, because not everyone is willing to type the extra characters, `ts-run` will now automatically remove type-only imports and exports. (see [Sucrase documentation](https://github.com/alangpierce/sucrase#transforms) for more info).
+However, because not everyone is willing to type the extra characters, `ts-run` version 1.2.3 and later will transparently ignore type-only imports and exports.
 
-### ESM vs CommonJS
-`ts-run`'s sole role is to transpile TypeScript code to JavaScript code, no more, no less. It does not try to convert scripts from CommonJS to ESM or vice-versa, it does not try to optimize or minify your code and it does not downlevel nor polyfill JavaScript.
-
-So:
-- when Node expects an ES module, `ts-run` essentially only removes all type annotations from TypeScript.
-- when Node expects a CommonJS module, `ts-run` additionnaly transforms TypeScript's `import` statements (but not `import()` expressions!) into `require()` calls.
-
-AND. THAT'S. ALL.
-
-What this means in particular is, that if you try to use ESM features (i.e., things like top-level await or `import.meta.url`) in a CommonJS context, your script will crash exactly the same way a plain JavaScript script would crash in the same situation.
-
-Conversely, CommonJS features (i.e., things like `__dirname` or `require()`) do not exist in an ESM context and `ts-run` will not make them magically available.
-
-> If you are not familiar with CommonJS and ESM modules and when NodeJS expects one format or the other, Node's documentation has [a comprehensive guide about modules](https://nodejs.org/docs/latest-v20.x/api/esm.html).
+### Path substitutions
+TypeScript's module resolution specificities are not handled. As far as `ts-run` is concerned, it is like if `moduleResolution` was always set to `Node16`.
 
 
 ## Authoring your scripts
-For the reasons stated above, `ts-run` does not need (and in fact, does not even look for) a `tsconfig.json` file.
-
-The same is not true however for the TypeScript Language Server that your IntelliSense-aware editor relies on. You'll find the following `tsconfig.json` useful to get the right warnings and errors reports in your IDE:
+As stated above, `ts-run` does not need (and in fact, does not even look for) a `tsconfig.json` file. The same is not true however for the TypeScript Language Server that your IntelliSense-aware editor relies on. You'll find the following `tsconfig.json` useful to get the right warnings and errors reports in your IDE:
 
 ```jsonc
 {
@@ -138,11 +118,12 @@ The same is not true however for the TypeScript Language Server that your Intell
   }
 }
 ```
+
 For reference, you can find such a `tsconfig.json` file in the [test folder](./test/tsconfig.json) of this repository.
 
 
 ## Using with a test-runner
-I have only tested with [ava](https://github.com/avajs/ava) and [Node itself](https://nodejs.org/api/test.html) and it works very well in both cases. I can see no reason why it wouldn't work with another test-runner.
+I have tested `ts-run` with [ava](https://github.com/avajs/ava) and [Node itself](https://nodejs.org/api/test.html) and it works very well in both cases. I can see no reason why it wouldn't work with another test-runner.
 
 ### With node:test
 This very repo is using Node as its test-runner of choice -- see the `scripts` section in `package.json`:
@@ -152,6 +133,8 @@ This very repo is using Node as its test-runner of choice -- see the `scripts` s
     "test": "ts-run test/check-node-21.ts && node --import=@septh/ts-run/register --test test/**/*.test.{ts,mts,cts}"
   }
 ```
+
+> Note: to pass command line options to Node itself, you need to use the `--import` syntax as shown above.
 
 The only caveat here is that Node started to support glob patterns as arguments to the `--test` option only since version 21, hence the little script that checks the version of Node before running the tests. This is a limitation of Node, not `ts-run`.
 
@@ -190,7 +173,7 @@ NODE_OPTIONS="--import=@septh/ts-run/register" my-test-runner
 
 
 ## Debugging scripts with VS Code
-Because `ts-run` supports sourcemaps, you can set breakpoints in your script code, inspect variables, etc.
+Because `ts-run` generates sourcemaps, you can set breakpoints in your script, inspect variables, etc.
 
 Either run `ts-run` in the VS Code Javascript Debug Terminal or use the following `launch.json` configuration (replace `<path-to-your-script.ts>` with the actual path to your script):
 
@@ -202,11 +185,11 @@ Either run `ts-run` in the VS Code Javascript Debug Terminal or use the followin
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch with ts-run",
+            "name": "Run with ts-run",
             "request": "launch",
             "type": "node",
             "runtimeArgs": [
-                "--import", "@septh/ts-run/register"
+                "--import=@septh/ts-run/register"
             ],
             "program": "${workspaceFolder}/<path-to-your-script.ts>",
             "windows": {
