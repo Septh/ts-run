@@ -16,7 +16,7 @@ describe("SourceMap v3 support", () => {
         let stack = ''
         try {
             // Additional spaces are intentional. column in on the `new` statement.
-            throw   new Error('Stack trace should show line 20, column 21.')
+            throw   new Error('Stack trace should show line 19, column 21.')
         }
         catch(e) {
             stack = (e as Error).stack ?? ''
