@@ -12,7 +12,7 @@ export const initialize: InitializeHook<NodeJS.InitializeHookData> = data => {
     defaultModuleType = data.defaultModuleType
 }
 
-export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
+export const resolve: ResolveHook = (specifier, context, nextResolve) => {
     // when run with `ts-run <script>` or `node path/to/index.js <script>`,
     // we need to resolve the entry point specifier relative to process.cwd()
     // because otherwise Node would resolve it relative to our own index.js.
@@ -25,18 +25,14 @@ export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
             parentURL: undefined
         }
 
-        if (path.isAbsolute(specifier))
+        if (path.isAbsolute(specifier)) {
+            // On Windows, absolute paths must be valid file:// URLs.
             specifier = pathToFileURL(specifier).href
+        }
         else if (/^\w/.test(specifier))
             specifier = './' + specifier
-
-        return {
-            ...await nextResolve(specifier, context),
-            shortCircuit: true
-        }
     }
 
-    // Normal operation otherwise.
     return nextResolve(specifier, context)
 }
 
@@ -51,9 +47,9 @@ async function nearestPackageType(file: string): Promise<NodeJS.ModuleType> {
         const pkgFile = path.join(current, 'package.json')
         let format = pkgTypeCache.get(pkgFile)
         if (!format) {
-            format = await readFile(pkgFile, 'utf-8')
+            format = await readFile(pkgFile)
                 .then(data => {
-                    const { type } = JSON.parse(data) as PackageJson
+                    const { type } = JSON.parse(data.toString()) as PackageJson
                     return type === 'module' || type === 'commonjs'
                         ? type
                         : unknownType
