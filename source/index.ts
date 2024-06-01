@@ -38,35 +38,39 @@ if (
     process.setSourceMapsEnabled(true)
 
     // If we're not run via Node's --import flag but rather via
-    // `ts-run <script>` or `node path/to/this/file.js <script>`,
-    // get the name of the real entry point from the command line,
-    // remove us from argv then dynamically import the real entry point.
+    // `ts-run <script>` or `node path/to/this/file.js <script>`, then:
+    // - A: get the name of the real entry point from the command line
+    //      (the first argument that does not start with a dash)
+    // - B: remove us from argv
+    // - C: dynamically import the real entry point.
     if (process.argv[1] === fileURLToPath(self)) {
 
-        let entryPointIndex = -1
+        // A
+        let realEntryPointIndex = -1
         for (let i = 2; i < process.argv.length; i++) {
             const arg = process.argv[i]
-            if (arg === '--')
+            if (arg.charCodeAt(0) === 45) {
+                if (arg.charCodeAt(1) === 45)
+                    break
+            }
+            else {
+                realEntryPointIndex = i
                 break
-            if (arg.startsWith('-'))
-                continue
-            entryPointIndex = i
-            break
+            }
         }
 
-        if (entryPointIndex > 0) {
-            const entryPoint = process.argv[entryPointIndex]
-            try {
-                process.argv[1] = await realpath(entryPoint)
-            }
-            catch {
-                process.argv[1] = path.resolve(entryPoint)
-            }
-            process.argv.splice(entryPointIndex, 1)
+        if (realEntryPointIndex > 0) {
+            const realEntryPoint = process.argv[realEntryPointIndex]
 
-            await import(entryPoint)
+            // B
+            process.argv[1] = await realpath(realEntryPoint).catch(() => path.resolve(realEntryPoint))
+            process.argv.splice(realEntryPointIndex, 1)
+
+            // C
+            await import(realEntryPoint)
         }
         else if (process.argv.includes('-v')) {
+            // ts-run -v
             const { name, version } = module.createRequire(self)('../package.json') as typeof import('../package.json')
             console.log(`Node.js v${major}.${minor}.${patch}, ${name.split('/').pop()} v${version}`)
         }
