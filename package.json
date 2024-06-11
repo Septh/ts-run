@@ -47,10 +47,11 @@
     "prebuild": "rimraf lib",
     "build": "rollup --config",
     "watch": "npm run build -- --watch",
+    "typecheck": "tsc --allowImportingTsExtensions",
     "test": "ts-run test/check-node-21.ts && node --import=@septh/ts-run/register --test test/**/*.test.{ts,mts,cts}"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-terser": "^0.4.4",
     "@types/node": "^20.11.10",
