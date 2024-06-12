@@ -9,12 +9,18 @@
   ],
   "compilerOptions": {
 
-    // Input
+    // Node stuff
     "moduleResolution": "Bundler",
+    "module": "Preserve",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    // Input
+    "resolveJsonModule": true,
+    "checkJs": true,
 
     // Output
     "target": "ESNext",
-    "module": "ESNext",
     "noEmit": true,
 
     // Libs
@@ -33,7 +39,6 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": false,
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "checkJs": true
+    "isolatedModules": true
   }
 }
