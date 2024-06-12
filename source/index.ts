@@ -39,38 +39,36 @@ if (
 
     // If we're not run via Node's --import flag but rather via
     // `ts-run <script>` or `node path/to/this/file.js <script>`, then:
-    // - A: get the name of the real entry point from the command line
-    //      (the first argument that does not start with a dash)
-    // - B: remove us from argv
-    // - C: dynamically import the real entry point.
+    // - (A): get the name of the real entry point from the command line
+    //        (the first argument that does not start with a dash)
+    // - (B): replace us in argv with that entry point
+    // - (C): dynamically import the real entry point.
     if (process.argv[1] === fileURLToPath(self)) {
 
-        // A
+        // (A)
         let realEntryPointIndex = -1
         for (let i = 2; i < process.argv.length; i++) {
             const arg = process.argv[i]
-            if (arg.charCodeAt(0) === 45) {
-                if (arg.charCodeAt(1) === 45)
-                    break
-            }
-            else {
-                realEntryPointIndex = i
+            if (!arg.startsWith('-')) {
+                realEntryPointIndex = i;
                 break
             }
+            if (arg === '--')   // Ignore everything after --
+                break
         }
 
         if (realEntryPointIndex > 0) {
             const realEntryPoint = process.argv[realEntryPointIndex]
 
-            // B
+            // (B)
             process.argv[1] = await realpath(realEntryPoint).catch(() => path.resolve(realEntryPoint))
             process.argv.splice(realEntryPointIndex, 1)
 
-            // C
+            // (C)
             await import(realEntryPoint)
         }
         else if (process.argv.includes('-v')) {
-            // ts-run -v
+            // Respond to `ts-run -v`
             const { name, version } = module.createRequire(self)('../package.json') as typeof import('../package.json')
             console.log(`Node.js v${major}.${minor}.${patch}, ${name.split('/').pop()} v${version}`)
         }
