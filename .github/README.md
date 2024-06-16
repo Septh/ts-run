@@ -76,25 +76,30 @@ npx ts-run ./scripts/do-something.ts
 `ts-run`'s sole role is to transpile TypeScript code to JavaScript code, no more, no less. It does not try to optimize or minify your code and it does not downlevel nor polyfill JavaScript. Therefore, there are a few things you should keep in mind while authoring your scripts.
 
 ### import specifiers
-Use the `.ts`, `.mts` or `.cts` extensions when importing modules. They are mandatory in ESM modules and highly recommended in CJS modules.
+Use the `.ts`, `.mts` or `.cts` extensions when importing modules. Extensions are mandatory in ESM scripts and highly recommended in CJS scripts.
 
 ```ts
 import { something } from './utilities.ts'
 ```
 
-Contrary to the TypeScript compiler, `ts-run` will *not* try and find a corresponding `.ts` file if you use a `.js` specifier. See the [authoring section](#authoring-your-scripts) for details on how to enable `.ts` extension imports.
+Contrary to the TypeScript compiler, `ts-run` will *not* try and find a corresponding `.ts` file if you use a `.js` specifier. See the [authoring section](#authoring-your-scripts) for details on how to enable `.ts` extension imports in your editor.
 
 ### Type-only imports and exports
-I find it generally better to be explicit about type-only imports and exports by using TypeScript's `import type ...`, `import { type ...}` and `export type ...` syntax.
+I find it generally better to be explicit about type-only imports and exports by using TypeScript's `import type ...`, `import { type ... }` and `export type ...` syntax.
 
 However, because not everyone is willing to type the extra characters, `ts-run` version 1.2.3 and later will transparently ignore type-only imports and exports.
 
 ### Path substitutions
-TypeScript's module resolution specificities are not handled. As far as `ts-run` is concerned, it is like if `moduleResolution` was always set to `Node16`.
+TypeScript's module resolution specificities are not handled; instead, Node's module resolution algorithm is always used. In other words, as far as `ts-run` is concerned, it is like if `moduleResolution` was always set to `Node16` and `paths` was not set.
+
+### Sucrase
+`ts-run` uses a stripped down build of [Sucrase](https://github.com/alangpierce/sucrase) under the hood and therefore exhibits the same potential bugs and misbehaviors than Sucrase.
+
+If `ts-run` seems to not work as you'd expect, you should first check [if this there is a Sucrase issue open for your problem](https://github.com/alangpierce/sucrase/issues). If not, please file an issue on `ts-run`.
 
 
 ## Authoring your scripts
-As stated above, `ts-run` does not need (and in fact, does not even look for) a `tsconfig.json` file. The same is not true however for the TypeScript Language Server that your IntelliSense-aware editor relies on. You'll find the following `tsconfig.json` useful to get the right warnings and errors reports in your IDE:
+As stated earlier, `ts-run` does not need (and in fact, does not even look for) a `tsconfig.json` file. The same is not true however for the TypeScript Language Server that your IntelliSense-aware editor relies on. You'll find the following `tsconfig.json` useful to get the right warnings and errors reports in your IDE:
 
 ```jsonc
 {
