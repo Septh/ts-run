@@ -1,17 +1,16 @@
-// This tsconfig is completely ignored by ts-run but necessary to author scripts
-// in language server compatible IDEs (VS Code, etc.)
+// tsconfig files are completely ignored by ts-run but necessary to author scripts
+// in intellisense-compatible IDEs (VS Code, etc.)
 {
+  "extends": "../tsconfig.json",
+  "include": [ "." ],
   "compilerOptions": {
-    // Tell the TypeScript language server that this directory contains Node scripts,
-    // TypeScript will infer the actual module type from the nearest parent package.json
-    // that has a `type: 'module'` or `type: 'commonjs'` entry.
+    // Tell the TypeScript language server that this directory contains Node scripts.
+    // `module: "Node16"` automatically sets `moduleResolution: "Node16"` as well.
     "module": "Node16",
 
     // Scripts must import .ts files because ts-run does not map .js specifiers to .ts files.
-    // This flag enables this.
+    // `noEmit: true` is also required when using `allowImportingTsExtensions: true`
     "allowImportingTsExtensions": true,
-
-    // `noEmit: true` is required when using `allowImportingTsExtensions: true`
     "noEmit": true,
 
     // Script are transpiled in isolation, so tell the language server

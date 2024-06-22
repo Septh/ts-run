@@ -1,7 +1,6 @@
 {
   "include": [
     "source",
-    "test",
     "rollup.config.js"
   ],
   "exclude": [
@@ -10,8 +9,7 @@
   "compilerOptions": {
 
     // Node stuff
-    "moduleResolution": "Bundler",
-    "module": "Preserve",
+    "module": "Node16",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
 

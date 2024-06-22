@@ -1,4 +1,3 @@
-// @ts-check
 const ver = parseFloat(process.versions.node)
 if (ver < 21.0) {
     console.error([
