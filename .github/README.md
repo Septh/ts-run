@@ -84,6 +84,19 @@ import { something } from './utilities.ts'
 
 Contrary to the TypeScript compiler, `ts-run` will *not* try and find a corresponding `.ts` file if you use a `.js` specifier. See the [authoring section](#authoring-your-scripts) for details on how to enable `.ts` extension imports in your editor.
 
+### import vs require
+`ts-run` strictly follows the NodeJS semantics about ES and CommonJS modules. Refer to the following table to decide whether you should use `import` or `require`:
+|                  | **ES importer**                                                                                | **CJS importer**                                                  |
+|------------------|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
+| **ES importee**  | `import ... from 'specifier'`<br>or `const ... = await import('specifier')`        | `const ... = await import('specifier')`                                       |
+| **CJS importee** | `import namespace = require('specifier')` <br>or `const ... = await import('specifier')` | `import ... from 'specifier'` <br>or `const ... = require('specifier')` |
+
+Notes:
+1. The `import ... from 'specifier'` syntax is left as is in ES modules and transformed to `const ... = require('specifier')` in CommonJS modules.
+2. The `import namespace = require('specifier')` syntax is valid in ES modules only and is transformed to `const require = createRequire(); const namespace = require('specifier')`, with the [createRequire()](https://nodejs.org/api/module.html#modulecreaterequirefilename) call being hoisted if used several times.
+3. Dynamics imports are always left untouched.
+
+
 ### Type-only imports and exports
 I find it generally better to be explicit about type-only imports and exports by using TypeScript's `import type ...`, `import { type ... }` and `export type ...` syntax.
 
