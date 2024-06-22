@@ -1,12 +1,12 @@
-import { transform as parse, type Transform, type TransformResult } from 'sucrase'
+import * as sucrase from 'sucrase'
 
-const transforms: Record<NodeJS.ModuleType, Transform[]> = {
+const transforms: Record<NodeJS.ModuleType, sucrase.Transform[]> = {
     commonjs: [ 'typescript', 'imports' ],
     module: [ 'typescript' ]
 }
 
 export function transform(source: string, format: NodeJS.ModuleType, filePath: string) {
-    const { code, sourceMap } = parse(source, {
+    const { code, sourceMap } = sucrase.transform(source, {
         filePath,
         transforms: transforms[format],
         preserveDynamicImport: true,
@@ -15,7 +15,7 @@ export function transform(source: string, format: NodeJS.ModuleType, filePath: s
         sourceMapOptions: {
             compiledFilename: filePath
         }
-    }) as Required<TransformResult>
+    }) as Required<sucrase.TransformResult>
 
     sourceMap.sourceRoot = ''
     sourceMap.sources = [ filePath ]
