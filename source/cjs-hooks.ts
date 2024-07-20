@@ -3,6 +3,7 @@ import Module, { createRequire } from 'node:module'
 import { readFileSync } from 'node:fs'
 
 const require = createRequire(import.meta.url)
+const jsExtRx = /\.([cm])?js$/
 
 function transpile(m: Module, format: NodeJS.ModuleType, filePath: string) {
     // Notes:
@@ -12,7 +13,7 @@ function transpile(m: Module, format: NodeJS.ModuleType, filePath: string) {
     //   This infers a very small performance penalty when transpile() is called
     //   for the fist time, but we'll live with it.
     const { transform } = require('./transform.cjs') as typeof import('./transform.cjs')
-    const source = readFileSync(filePath).toString()
+    const source = readFileSync(filePath.replace(jsExtRx, '.$1ts')).toString()
     const code = transform(source, format, path.basename(filePath))
     return m._compile(code, filePath)
 }
@@ -53,6 +54,16 @@ function nearestPackageType(file: string, defaultType: NodeJS.ModuleType): NodeJ
 }
 
 export function install_cjs_hooks(defaultType: NodeJS.ModuleType) {
+    const { _resolveFilename } = Module
+    Module._resolveFilename = function(request, ...otherArgs) {
+        try {
+            return _resolveFilename.call(undefined, request, ...otherArgs)
+        }
+        catch {
+            return _resolveFilename.call(undefined, request.replace(jsExtRx, '.$1ts'), ...otherArgs)
+        }
+    }
+
     Module._extensions['.ts']  = (m, filename) => transpile(m, nearestPackageType(filename, defaultType), filename)
     Module._extensions['.cts'] = (m, filename) => transpile(m, 'commonjs', filename)
     Module._extensions['.mts'] = (m, filename) => transpile(m, 'module', filename)

@@ -10,6 +10,7 @@ declare global {
         type ModuleType = 'commonjs' | 'module'
 
         interface Module {
+            _resolveFilename(request: string, ...otherArgs: any[]): string
             _compile(code: string, filename: string): string
         }
     }
@@ -21,6 +22,7 @@ declare global {
 }
 
 declare module 'module' {
+    export function _resolveFilename(request: string, ...otherArgs: any[]): string
     export const _extensions: NodeJS.RequireExtensions
 }
 
