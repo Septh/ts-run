@@ -5,10 +5,10 @@ import { pathToFileURL } from 'node:url'
 
 describe("A .mts script inside a { type: 'commonjs' } directory is ESM", () => {
 
-    test("__dirname does not exist", () => {
+    test("__filename does not exist", () => {
         let threw = false
         try {
-            __dirname
+            __filename
         }
         catch(e) {
             threw = e instanceof ReferenceError
@@ -16,10 +16,10 @@ describe("A .mts script inside a { type: 'commonjs' } directory is ESM", () => {
         assert.ok(threw)
     })
 
-    test("__filename does not exist", () => {
+    test("__dirname does not exist", () => {
         let threw = false
         try {
-            __filename
+            __dirname
         }
         catch(e) {
             threw = e instanceof ReferenceError
@@ -40,11 +40,6 @@ describe("A .mts script inside a { type: 'commonjs' } directory is ESM", () => {
 
     // cwd must be ts-run's root directory for this to work
     test("import.meta.url is available", () => {
-        let url: string | undefined
-        try {
-            url = import.meta.url
-        }
-        catch {}
-        assert.strictEqual(url, pathToFileURL(path.resolve('test', 'cjs', '02.test.mts')).href)
+        assert.strictEqual(import.meta.url, pathToFileURL(path.resolve('test', 'cjs', '02.test.mts')).href)
     })
 })

@@ -6,28 +6,35 @@ import * as globallyImportedQux from './qux.ts'
 describe("A .ts script inside a { type: 'commonjs' } directory is CJS", () => {
 
     // cwd must be ts-run's root directory for this to work
-    test("__dirname is available", () => {
-        assert.strictEqual(__dirname, path.resolve('test', 'cjs'))
-    })
-
-    // cwd must be ts-run's root directory for this to work
     test("__filename is available", () => {
+        assert(typeof __filename === 'string')
         assert.strictEqual(__filename, path.resolve('test', 'cjs', '01.test.ts'))
     })
 
-    test("import statements are turned into require calls", () => {
-        const { qux } = globallyImportedQux as any
-        assert.strictEqual(qux, 'qux')
+    // cwd must be ts-run's root directory for this to work
+    test("__dirname is available", () => {
+        assert(typeof __dirname === 'string')
+        assert.strictEqual(__dirname, path.resolve('test', 'cjs'))
     })
 
     test("require() is available", () => {
+        assert(typeof require === 'function')
+        assert(typeof require.resolve === 'function')
+    })
+
+    test("extension-less specifiers are supported for require()", () => {
+        const foo = require('./foo')
+        assert.strictEqual(foo, 'foo')
+    })
+
+    test(".ts specifiers are supported for require()", () => {
         const foo = require('./foo.ts')
         assert.strictEqual(foo, 'foo')
     })
 
-    test("extension-less require() specifiers are supported", () => {
-        const bar = require('./bar')
-        assert.strictEqual(bar, 'bar')
+    test(".js specifiers are supported for require()", () => {
+        const foo = require('./foo.js')
+        assert.strictEqual(foo, 'foo')
     })
 
     test("directory imports are supported when using require()", () => {
@@ -35,21 +42,14 @@ describe("A .ts script inside a { type: 'commonjs' } directory is CJS", () => {
         assert.strictEqual(baz, 'baz')
     })
 
-    //
-    // This test is commented out because the Syntax Error
-    // thrown by `import.meta.url` is actually not catchable
-    // and will end the process no matter what :(
-    //
-    /* it('throws on import.meta.url', () => {
-        let threw = false
-        try {
-            // @ts-expect-error ts(1470): The 'import.meta' meta-property is not allowed in files which will build into CommonJS output.
-            console.log(import.meta.url)
-        }
-        catch {
-            threw = true
-        }
+    test("import statements are turned into require calls", () => {
+        const { qux } = globallyImportedQux as any
+        assert.strictEqual(qux, 'qux')
+    })
 
-        assert(threw)
-    }) */
+    test("export statements are turned into module.exports assignments", () => {
+        const ns = require('./doe.ts')
+        assert.strictEqual(ns.default, 'john')
+        assert.strictEqual(ns.doe, 'doe')
+    })
 })

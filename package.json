@@ -55,7 +55,7 @@
     "build": "rollup --config",
     "watch": "npm run build -- --watch",
     "typecheck": "tsc --allowImportingTsExtensions",
-    "test": "node test/check-node-21.js && node --import=./lib/index.js --test test/**/*.test.{ts,mts,cts}"
+    "test": "node test/check-node-21.js && node ./lib/index.js test/01.argv.test.ts && node --import=./lib/index.js --test test/**/*.test.{ts,mts,cts}"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^26.0.1",
