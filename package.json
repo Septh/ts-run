@@ -38,6 +38,10 @@
     "ts-run": "./lib/index.js"
   },
   "exports": {
+    ".": {
+      "types": "./register.d.ts",
+      "default": "./lib/index.js"
+    },
     "./register": {
       "types": "./register.d.ts",
       "default": "./lib/index.js"
