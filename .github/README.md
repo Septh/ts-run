@@ -6,9 +6,9 @@
 - Supports source maps for accurate stack traces.
 - Does not spawn another process to transpile TypeScript.
 - Does not spawn another Node process to run your script.
-- Strictly follows modern Node semantics for ESM / CommonJS modules.
+- Strictly follows modern Node semantics for ESM and CommonJS modules.
 - Zero config: no config file, no command line arguments, no environment variables, no nothing.
-- Does not even need a `tsconfig.json` (though you may need one for *authoring* your scripts -- keep reading below).
+- Does not even need a `tsconfig.json`.
 - Light: only 220 kilobytes installed!
 - Zero dependency!
 
@@ -75,38 +75,39 @@ npx ts-run ./scripts/do-something.ts
 ## TypeScript to JavaScript considerations
 `ts-run`'s sole role is to transpile TypeScript code to JavaScript code, no more, no less. It does not try to optimize or minify your code and it does not downlevel nor polyfill JavaScript. Therefore, there are a few things you should keep in mind while authoring your scripts.
 
-### import specifiers
-Use the `.ts`, `.mts` or `.cts` extensions when importing modules. Extensions are mandatory in ESM scripts and highly recommended in CJS scripts.
+### imports and exports
+Beginning with `ts-run` 1.2.6, `.js` specifiers are supported to import `.ts` scripts:
 
 ```ts
-import { something } from './utilities.ts'
+// a.ts
+export const something = 'great'
+
+// b.ts
+import { something } from './a.js'  // works!
 ```
 
-Contrary to the TypeScript compiler, `ts-run` will *not* try and find a corresponding `.ts` file if you use a `.js` specifier. See the [authoring section](#authoring-your-scripts) for details on how to enable `.ts` extension imports in your editor.
+But you may also use `.ts` specifiers:
 
-### import vs require
-`ts-run` strictly follows the NodeJS semantics about ES and CommonJS modules. Refer to the following table to decide whether you should use `import` or `require`:
-|                  | **ES importer**                                                                                | **CJS importer**                                                  |
-|------------------|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
-| **ES importee**  | `import ... from 'specifier'`<br>or `const ... = await import('specifier')`        | `const ... = await import('specifier')`                                       |
-| **CJS importee** | `import namespace = require('specifier')` <br>or `const ... = await import('specifier')` | `import ... from 'specifier'` <br>or `const ... = require('specifier')` |
+```ts
+// b.ts
+import { something } from './a.ts'  // works too!
+```
 
-Notes:
+Whatever your choice, remember that extensions are mandatory in ESM scripts.
+
+In short:
 1. The `import ... from 'specifier'` syntax is left as is in ES modules and transformed to `const ... = require('specifier')` in CommonJS modules.
 2. The `import namespace = require('specifier')` syntax is valid in ES modules only and is transformed to `const require = createRequire(); const namespace = require('specifier')`, with the [createRequire()](https://nodejs.org/api/module.html#modulecreaterequirefilename) call being hoisted if used several times.
 3. Dynamics imports are always left untouched.
+4. `export`s are transformed to `module.exports` assignments in CommonJS modules.
+5. Type-only `import`s and `export`s, whether explicit or implicit, are recognized and silently removed.
 
-
-### Type-only imports and exports
-I find it generally better to be explicit about type-only imports and exports by using TypeScript's `import type ...`, `import { type ... }` and `export type ...` syntax.
-
-However, because not everyone is willing to type the extra characters, `ts-run` version 1.2.3 and later will transparently ignore type-only imports and exports.
 
 ### Path substitutions
-TypeScript's module resolution specificities are not handled; instead, Node's module resolution algorithm is always used. In other words, as far as `ts-run` is concerned, it is like if `moduleResolution` was always set to `Node16` and `paths` was not set.
+TypeScript's module resolution specificities are not handled; instead, Node's module resolution algorithm is always used. In other words, as far as `ts-run` is concerned, it is like if both `module` and `moduleResolution` were always set to `Node16`, and `paths` was not set.
 
 ### Sucrase
-`ts-run` uses a stripped down build of [Sucrase](https://github.com/alangpierce/sucrase) under the hood and therefore exhibits the same potential bugs and misbehaviors than Sucrase.
+`ts-run` uses a customized build of [Sucrase](https://github.com/alangpierce/sucrase) under the hood and therefore exhibits the same potential bugs and misbehaviors than Sucrase.
 
 If `ts-run` seems to not work as you'd expect, you should first check [if this there is a Sucrase issue open for your problem](https://github.com/alangpierce/sucrase/issues). If not, please file an issue on `ts-run`.
 
@@ -120,8 +121,8 @@ As stated earlier, `ts-run` does not need (and in fact, does not even look for) 
     // This tells the TypeScript language server that this directory contains Node scripts.
     "module": "Node16",
 
-    // - Scripts must import .ts files as ts-run does not map .js to .ts
-    // - `noEmit` is required when using `allowImportingTsExtensions`
+    // For scripts that use .ts import specifiers.
+    // Please note that `noEmit` is required when using `allowImportingTsExtensions`
     "allowImportingTsExtensions": true,
     "noEmit": true,
 
@@ -144,24 +145,15 @@ For reference, you can find such a `tsconfig.json` file in the [test folder](./t
 I have tested `ts-run` with [ava](https://github.com/avajs/ava) and [Node itself](https://nodejs.org/api/test.html) and it works very well in both cases. I can see no reason why it wouldn't work with another test-runner.
 
 ### With node:test
-This very repo is using Node as its test-runner of choice -- see the `scripts` section in `package.json`:
+This very repo is using Node as its test-runner of choice. Here's what your `scripts` section in `package.json` may look like:
 
 ```json
   "scripts": {
-    "test": "ts-run test/check-node-21.ts && node --import=@septh/ts-run/register --test test/**/*.test.{ts,mts,cts}"
+    "test": "node --import=@septh/ts-run --test test/**/*.test.{ts,mts,cts}"
   }
 ```
 
 > Note: to pass command line options to Node itself, you need to use the `--import` syntax as shown above.
-
-The only caveat here is that Node started to support glob patterns as arguments to the `--test` option only since version 21, hence the little script that checks the version of Node before running the tests. This is a limitation of Node, not `ts-run`.
-
-On the other hand, this works with older versions of Node supported by `ts-run`:
-```json
-  "scripts": {
-    "test": "node --import=@septh/ts-run/register --test my-test-script.ts"
-}
-```
 
 ### With ava
 Add the following entry to your `package.json`:
@@ -174,7 +166,7 @@ Add the following entry to your `package.json`:
       "cts": "commonjs"
     },
     "nodeArguments": [
-      "--import=@septh/ts-run/register"
+      "--import=@septh/ts-run"
     ]
   }
 ```
@@ -186,7 +178,7 @@ Any test-runner that provides a mean to specify Node arguments (just like ava ab
 
 In the worst case, you can always use the `NODE_OPTIONS` environment variable:
 ```sh
-NODE_OPTIONS="--import=@septh/ts-run/register" my-test-runner
+NODE_OPTIONS="--import=@septh/ts-run" my-test-runner
 ```
 
 
@@ -207,7 +199,7 @@ Either run `ts-run` in the VS Code Javascript Debug Terminal or use the followin
             "request": "launch",
             "type": "node",
             "runtimeArgs": [
-                "--import=@septh/ts-run/register"
+                "--import=@septh/ts-run"
             ],
             "program": "${workspaceFolder}/<path-to-your-script.ts>",
             "windows": {
