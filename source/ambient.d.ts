@@ -1,12 +1,13 @@
 declare global {
+
+    // The data passed to the initialize() hook.
+    interface HookData {
+        self: string
+        defaultModuleType: ModuleType
+    }
+
     namespace NodeJS {
         type ModuleType = 'commonjs' | 'module'
-
-        // The data passed to the initialize() hook.
-        interface InitializeHookData {
-            self: string
-            defaultModuleType: ModuleType
-        }
 
         interface Module {
             _compile(code: string, filename: string): string

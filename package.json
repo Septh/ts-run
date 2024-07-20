@@ -47,6 +47,9 @@
       "default": "./lib/index.js"
     }
   },
+  "imports": {
+    "#package.json": "./package.json"
+  },
   "scripts": {
     "prebuild": "rimraf lib",
     "build": "rollup --config",

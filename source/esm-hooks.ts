@@ -3,17 +3,14 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { readFile } from 'node:fs/promises'
 import type { InitializeHook, ResolveHook, LoadHook } from 'node:module'
 
-const { transform } = await import('./transform.cjs')
-
-let self: string
-let defaultModuleType: NodeJS.ModuleType
-
+const hookData: HookData = Object.create(null)
 const jsExtRx = /\.([cm])?js$/
 const tsExtRx = /\.([cm])?ts$/
+const { transform } = await import('./transform.cjs')
 
-export const initialize: InitializeHook<NodeJS.InitializeHookData> = data => {
-    self = data.self
-    defaultModuleType = data.defaultModuleType
+export const initialize: InitializeHook<HookData> = ({ self, defaultModuleType }) => {
+    hookData.self = self
+    hookData.defaultModuleType = defaultModuleType
 }
 
 export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
@@ -23,7 +20,7 @@ export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
     //
     // FIXME: this prevents running a script from node_modules with a bare specifier,
     //        we may want to add support for this later.
-    if (context.parentURL === self) {
+    if (context.parentURL === hookData.self) {
         context = {
             ...context,
             parentURL: undefined
@@ -37,16 +34,14 @@ export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
             specifier = './' + specifier
     }
 
-    let resolved: ReturnType<ResolveHook>
+    let result: ReturnType<ResolveHook>
     try {
-        resolved = await nextResolve(specifier, context)
+        result = await nextResolve(specifier, context)
     }
     catch {
-        specifier = specifier.replace(jsExtRx, '.$1ts')
-        resolved = await nextResolve(specifier, context)
+        result = await nextResolve(specifier.replace(jsExtRx, '.$1ts'), context)
     }
-
-    return resolved
+    return result
 }
 
 const unknownType = Symbol()
@@ -80,14 +75,13 @@ async function nearestPackageType(file: string): Promise<NodeJS.ModuleType> {
             return format
     }
 
-    return defaultModuleType
+    return hookData.defaultModuleType
 }
 
 export const load: LoadHook = async (url, context, nextLoad) => {
-    const fileUrl = new URL(url)
-    const filePath = fileURLToPath(fileUrl)
 
     // If this is not a TypeScript file, defer to the next hook in the chain.
+    const fileUrl = new URL(url)
     const { protocol, pathname } = fileUrl
     const [ ext ] = tsExtRx.exec(pathname) ?? []
     if (protocol !== 'file:' || !ext)
@@ -95,6 +89,7 @@ export const load: LoadHook = async (url, context, nextLoad) => {
 
     // Determine the output format based on the file's extension
     // or the nearest package.json's `type` field.
+    const filePath = fileURLToPath(fileUrl)
     const format = context.format ?? (
         ext === '.ts'
             ? await nearestPackageType(filePath)
