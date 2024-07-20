@@ -7,14 +7,18 @@ const { transform } = await import('./transform.cjs')
 
 let self: string
 let defaultModuleType: NodeJS.ModuleType
+
+const jsExtRx = /\.([cm])?js$/
+const tsExtRx = /\.([cm])?ts$/
+
 export const initialize: InitializeHook<NodeJS.InitializeHookData> = data => {
     self = data.self
     defaultModuleType = data.defaultModuleType
 }
 
-export const resolve: ResolveHook = (specifier, context, nextResolve) => {
+export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
     // when run with `ts-run <script>` or `node path/to/index.js <script>`,
-    // we need to resolve the entry point specifier relative to process.cwd()
+    // we need to resolve the <script> specifier relative to process.cwd()
     // because otherwise Node would resolve it relative to our own index.js.
     //
     // FIXME: this prevents running a script from node_modules with a bare specifier,
@@ -33,11 +37,20 @@ export const resolve: ResolveHook = (specifier, context, nextResolve) => {
             specifier = './' + specifier
     }
 
-    return nextResolve(specifier, context)
+    let resolved: ReturnType<ResolveHook>
+    try {
+        resolved = await nextResolve(specifier, context)
+    }
+    catch {
+        specifier = specifier.replace(jsExtRx, '.$1ts')
+        resolved = await nextResolve(specifier, context)
+    }
+
+    return resolved
 }
 
 const unknownType = Symbol()
-const pkgTypeCache = new Map<string, NodeJS.ModuleType | Symbol>()
+const pkgTypeCache = new Map<string, NodeJS.ModuleType | symbol>()
 async function nearestPackageType(file: string): Promise<NodeJS.ModuleType> {
     for (
         let current = path.dirname(file), previous: string | undefined = undefined;
@@ -74,20 +87,23 @@ export const load: LoadHook = async (url, context, nextLoad) => {
 
     // If this is not a TypeScript file, defer to the next hook in the chain.
     const { protocol, pathname } = new URL(url)
-    const [ , ext ] = /(\.[cm]?ts)$/.exec(pathname) ?? []
+    const [ ext ] = tsExtRx.exec(pathname) ?? []
     if (protocol !== 'file:' || !ext)
         return nextLoad(url, context)
 
     // Determine the output format based on the file's extension
     // or the nearest package.json's `type` field.
     const filePath = fileURLToPath(url)
-    const format: NodeJS.ModuleType = (
+    const format = context.format ?? (
         ext === '.ts'
             ? await nearestPackageType(filePath)
             : ext === '.mts'
                 ? 'module'
                 : 'commonjs'
     )
+
+    if (format !== 'module' && format !== 'commonjs')
+        return nextLoad(url, context)
 
     // Notes:
     // - Node doesn't yet care about the file contents at this point
