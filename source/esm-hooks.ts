@@ -84,16 +84,17 @@ async function nearestPackageType(file: string): Promise<NodeJS.ModuleType> {
 }
 
 export const load: LoadHook = async (url, context, nextLoad) => {
+    const fileUrl = new URL(url)
+    const filePath = fileURLToPath(fileUrl)
 
     // If this is not a TypeScript file, defer to the next hook in the chain.
-    const { protocol, pathname } = new URL(url)
+    const { protocol, pathname } = fileUrl
     const [ ext ] = tsExtRx.exec(pathname) ?? []
     if (protocol !== 'file:' || !ext)
         return nextLoad(url, context)
 
     // Determine the output format based on the file's extension
     // or the nearest package.json's `type` field.
-    const filePath = fileURLToPath(url)
     const format = context.format ?? (
         ext === '.ts'
             ? await nearestPackageType(filePath)
@@ -105,13 +106,10 @@ export const load: LoadHook = async (url, context, nextLoad) => {
     if (format !== 'module' && format !== 'commonjs')
         return nextLoad(url, context)
 
-    // Notes:
-    // - Node doesn't yet care about the file contents at this point
-    //   so we're fine calling nextLoad() to do the actual loading
-    // - if null is returned for `source`, the CJS loader will be used instead
-    let { source } = await nextLoad(url, { ...context, format })
-    if (source)
-        source = transform(source.toString(), format, path.basename(filePath))
+    // Load and transform the file.
+    const source = await readFile(filePath)
+        .then(buffer => transform(buffer.toString(), format, path.basename(filePath)))
+        .catch(() => undefined)
 
     return {
         source,
