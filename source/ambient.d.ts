@@ -1,11 +1,5 @@
 declare global {
 
-    // The data passed to the initialize() hook.
-    interface HookData {
-        self: string
-        defaultModuleType: ModuleType
-    }
-
     namespace NodeJS {
         type ModuleType = 'commonjs' | 'module'
 
@@ -18,6 +12,12 @@ declare global {
     // Fields of interest in package.json.
     interface PackageJson {
         type?: NodeJS.ModuleType
+    }
+
+    // The data passed to the initialize() hook.
+    interface HookData {
+        self: string
+        defaultModuleType: NodeJS.ModuleType
     }
 }
 
