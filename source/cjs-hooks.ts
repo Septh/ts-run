@@ -13,13 +13,12 @@ function transpile(m: Module, format: NodeJS.ModuleType, filePath: string) {
     //   This infers a very small performance penalty when transpile() is called
     //   for the fist time, but we'll live with it.
     const { transform } = require('./transform.cjs') as typeof import('./transform.cjs')
-    const source = readFileSync(filePath.replace(jsExtRx, '.$1ts')).toString()
+    const source = readFileSync(filePath).toString()
     const code = transform(source, format, path.basename(filePath))
     return m._compile(code, filePath)
 }
 
-const unknownType = Symbol()
-const pkgTypeCache = new Map<string, NodeJS.ModuleType | Symbol>()
+const pkgTypeCache = new Map<string, NodeJS.ModuleType | null>()
 function nearestPackageType(file: string, defaultType: NodeJS.ModuleType): NodeJS.ModuleType {
     for (
         let current = path.dirname(file), previous: string | undefined = undefined;
@@ -27,27 +26,27 @@ function nearestPackageType(file: string, defaultType: NodeJS.ModuleType): NodeJ
         previous = current, current = path.dirname(current)
     ) {
         const pkgFile = path.join(current, 'package.json')
-        let format = pkgTypeCache.get(pkgFile)
-        if (!format) {
+        let cached = pkgTypeCache.get(pkgFile)
+        if (cached === undefined) {
             try {
-                const data = readFileSync(pkgFile, 'utf-8')
-                const { type } = JSON.parse(data) as PackageJson
-                format = type === 'module' || type ==='commonjs'
+                const data = readFileSync(pkgFile)
+                const { type } = JSON.parse(data.toString()) as PackageJson
+                cached = type === 'module' || type ==='commonjs'
                     ? type
-                    : unknownType
+                    : defaultType
             }
             catch(err) {
                 const { code } = err as NodeJS.ErrnoException
                 if (code !== 'ENOENT')
                     console.error(err)
-                format = unknownType
+                cached = null
             }
 
-            pkgTypeCache.set(pkgFile, format)
+            pkgTypeCache.set(pkgFile, cached)
         }
 
-        if (typeof format === 'string')
-            return format
+        if (typeof cached === 'string')
+            return cached
     }
 
     return defaultType
@@ -55,7 +54,7 @@ function nearestPackageType(file: string, defaultType: NodeJS.ModuleType): NodeJ
 
 export function install_cjs_hooks(defaultType: NodeJS.ModuleType) {
     const { _resolveFilename } = Module
-    Module._resolveFilename = function(request, ...otherArgs) {
+    Module._resolveFilename = function _resolveFilenamePatch(request, ...otherArgs) {
         try {
             return _resolveFilename.call(undefined, request, ...otherArgs)
         }

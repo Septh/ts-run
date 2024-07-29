@@ -44,8 +44,7 @@ export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
     return result
 }
 
-const unknownType = Symbol()
-const pkgTypeCache = new Map<string, NodeJS.ModuleType | symbol>()
+const pkgTypeCache = new Map<string, NodeJS.ModuleType | null>()
 async function nearestPackageType(file: string): Promise<NodeJS.ModuleType> {
     for (
         let current = path.dirname(file), previous: string | undefined = undefined;
@@ -53,26 +52,26 @@ async function nearestPackageType(file: string): Promise<NodeJS.ModuleType> {
         previous = current, current = path.dirname(current)
     ) {
         const pkgFile = path.join(current, 'package.json')
-        let format = pkgTypeCache.get(pkgFile)
-        if (!format) {
-            format = await readFile(pkgFile)
+        let cached = pkgTypeCache.get(pkgFile)
+        if (cached === undefined) {
+            cached = await readFile(pkgFile)
                 .then(data => {
                     const { type } = JSON.parse(data.toString()) as PackageJson
                     return type === 'module' || type === 'commonjs'
                         ? type
-                        : unknownType
+                        : hookData.defaultModuleType
                 })
                 .catch(err => {
                     const { code } = err as NodeJS.ErrnoException
                     if (code !== 'ENOENT')
                         console.error(err)
-                    return unknownType
+                    return null
                 })
-            pkgTypeCache.set(pkgFile, format)
+            pkgTypeCache.set(pkgFile, cached)
         }
 
-        if (typeof format === 'string')
-            return format
+        if (typeof cached === 'string')
+            return cached
     }
 
     return hookData.defaultModuleType
