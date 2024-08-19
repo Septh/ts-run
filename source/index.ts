@@ -17,7 +17,7 @@ process.setSourceMapsEnabled(true)
 
 // Determine the default module type.
 let defaultModuleType: NodeJS.ModuleType = 'commonjs'
-const argIndex = process.execArgv.findIndex(arg => arg.startsWith('--experimental-default-type'))
+const argIndex = process.execArgv.findIndex(arg => /^--(?:experimental-)?default-type/.test(arg))
 if (argIndex >= 0) {
     const type = process.execArgv[argIndex].split('=')[1] || process.execArgv[argIndex + 1]
     if (type === 'module' || type === 'commonjs')
