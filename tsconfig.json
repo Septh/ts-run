@@ -1,6 +1,7 @@
 {
   "include": [
     "source",
+    "test",
     "rollup.config.js"
   ],
   "exclude": [
@@ -9,13 +10,14 @@
   "compilerOptions": {
 
     // Node stuff
-    "module": "Node16",
-    "esModuleInterop": true,
+    "moduleResolution": "Bundler",
+    "module": "ESNext",
     "allowSyntheticDefaultImports": true,
 
     // Input
     "resolveJsonModule": true,
     "checkJs": true,
+    "allowImportingTsExtensions": true,
 
     // Output
     "target": "ESNext",
