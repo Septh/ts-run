@@ -2,16 +2,10 @@ import path from 'node:path'
 import { readFile } from 'fs/promises'
 import { nodeExternals } from 'rollup-plugin-node-externals'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
-import _commonsJS from '@rollup/plugin-commonjs'
+import commonsJS from '@rollup/plugin-commonjs'
 import { sucrase } from 'rollup-plugin-fast-typescript'
-import _terser from '@rollup/plugin-terser'
+import terser from '@rollup/plugin-terser'
 import { defineConfig } from 'rollup'
-
-/** @type {import('@rollup/plugin-commonjs').default} */
-const commonsJS = /** @type {any} */(_commonsJS)
-
-/** @type {import('@rollup/plugin-terser').default} */
-const terser = /** @type {any} */(_terser)
 
 export default defineConfig([
     {
