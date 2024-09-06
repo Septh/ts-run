@@ -1,13 +1,13 @@
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { readFile } from 'node:fs/promises'
+import { transform } from './transform.cjs'
 import type { InitializeHook, ResolveHook, LoadHook } from 'node:module'
 
-const hookData: HookData = Object.create(null)
 const jsExtRx = /\.([cm])?js$/
 const tsExtRx = /\.([cm])?ts$/
-const { transform } = await import('./transform.cjs')
 
+const hookData: HookData = Object.create(null)
 export const initialize: InitializeHook<HookData> = ({ self, defaultModuleType }) => {
     hookData.self = self
     hookData.defaultModuleType = defaultModuleType
@@ -15,11 +15,8 @@ export const initialize: InitializeHook<HookData> = ({ self, defaultModuleType }
 
 export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
     // when run with `ts-run <script>` or `node path/to/index.js <script>`,
-    // we need to resolve the <script> specifier relative to process.cwd()
+    // we need to resolve the entry <script> specifier relative to process.cwd()
     // because otherwise Node would resolve it relative to our own index.js.
-    //
-    // FIXME: this prevents running a script from node_modules with a bare specifier,
-    //        we may want to add support for this later.
     if (context.parentURL === hookData.self) {
         context = {
             ...context,
@@ -34,14 +31,17 @@ export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
             specifier = './' + specifier
     }
 
-    let result: ReturnType<ResolveHook>
-    try {
-        result = await nextResolve(specifier, context)
+    // Let's try first with the .ts extension...
+    const ts = specifier.replace(jsExtRx, '.$1ts')
+    if (ts !== specifier) {
+        try {
+            return await nextResolve(ts, context)
+        }
+        catch {}
     }
-    catch {
-        result = await nextResolve(specifier.replace(jsExtRx, '.$1ts'), context)
-    }
-    return result
+
+    // Otherwise, go as-is.
+    return nextResolve(specifier, context)
 }
 
 const pkgTypeCache = new Map<string, NodeJS.ModuleType | null>()
