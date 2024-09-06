@@ -68,7 +68,11 @@ and then call it from the `scripts` section in `package.json`:
 or from the command line:
 
 ```sh
+# with npx
 npx ts-run ./scripts/do-something.ts
+
+# with node --import
+node --import=@septh/ts-run ./scripts/do-something.ts
 ```
 
 
@@ -76,35 +80,41 @@ npx ts-run ./scripts/do-something.ts
 `ts-run`'s sole role is to transpile TypeScript code to JavaScript code, no more, no less. It does not try to optimize or minify your code and it does not downlevel nor polyfill JavaScript. Therefore, there are a few things you should keep in mind while authoring your scripts.
 
 ### imports and exports
-Beginning with `ts-run` 1.2.6, `.js` specifiers are supported to import `.ts` scripts:
+
+#### Specifiers
+Simply import your `.ts` scripts as you would with plain Javascript:
 
 ```ts
 // a.ts
 export const something = 'great'
-
-// b.ts
-import { something } from './a.js'  // works!
 ```
-
-But you may also use `.ts` specifiers:
 
 ```ts
 // b.ts
-import { something } from './a.ts'  // works too!
+import { something } from './a.ts'
+```
+
+Beginning with `ts-run` 1.2.6, `.js` specifiers are also supported:
+
+```ts
+// b.ts
+import { something } from './a.js'  // works too!
 ```
 
 Whatever your choice, remember that extensions are mandatory in ESM scripts.
 
-In short:
+#### TypeScript specificities
+
+`ts-run` handles both JavaScript and TypeScript `import` and `export` declarations as one would expect. In short:
+
 1. The `import ... from 'specifier'` syntax is left as is in ES modules and transformed to `const ... = require('specifier')` in CommonJS modules.
 2. The `import namespace = require('specifier')` syntax is valid in ES modules only and is transformed to `const require = createRequire(); const namespace = require('specifier')`, with the [createRequire()](https://nodejs.org/api/module.html#modulecreaterequirefilename) call being hoisted if used several times.
-3. Dynamics imports are always left untouched.
+3. Dynamics imports are always left untouched, even in CJS modules.
 4. `export`s are transformed to `module.exports` assignments in CommonJS modules.
-5. Type-only `import`s and `export`s, whether explicit or implicit, are recognized and silently removed.
+5. Type-only `import`s and `export`s, whether explicit or implicit, are silently removed.
 
-
-### Path substitutions
-TypeScript's module resolution specificities are not handled; instead, Node's module resolution algorithm is always used. In other words, as far as `ts-run` is concerned, it is like if both `module` and `moduleResolution` were always set to `Node16`, and `paths` was not set.
+#### Path substitutions
+TypeScript's module resolution specificities are not handled; instead, Node's module resolution algorithm is always used. In other words, `ts-run` always acts as if both `module` and `moduleResolution` were always set to `Node16` and `paths` was not set.
 
 ### Sucrase
 `ts-run` uses a customized build of [Sucrase](https://github.com/alangpierce/sucrase) under the hood and therefore exhibits the same potential bugs and misbehaviors than Sucrase.
@@ -113,15 +123,19 @@ If `ts-run` seems to not work as you'd expect, you should first check [if this t
 
 
 ## Authoring your scripts
-As stated earlier, `ts-run` does not need (and in fact, does not even look for) a `tsconfig.json` file. The same is not true however for the TypeScript Language Server that your IntelliSense-aware editor relies on. You'll find the following `tsconfig.json` useful to get the right warnings and errors reports in your IDE:
+As stated earlier, `ts-run` does not need (and in fact, does not even look for) a `tsconfig.json` file.
+
+The same is not true however for the TypeScript Language Server that your IntelliSense-aware editor relies on. You'll find the following `tsconfig.json` useful to get the right warnings and errors reports in your IDE:
 
 ```jsonc
 {
   "compilerOptions": {
+
     // This tells the TypeScript language server that this directory contains Node scripts.
+    // "Bundler" would be fine, too.
     "module": "Node16",
 
-    // For scripts that use .ts import specifiers.
+    // For scripts that use .ts import specifiers (recommended)
     // Please note that `noEmit` is required when using `allowImportingTsExtensions`
     "allowImportingTsExtensions": true,
     "noEmit": true,
@@ -138,7 +152,7 @@ As stated earlier, `ts-run` does not need (and in fact, does not even look for) 
 }
 ```
 
-For reference, you can find such a `tsconfig.json` file in the [test folder](./test/tsconfig.json) of this repository.
+For reference, you can find such a `tsconfig.json` file at [the root](./tsconfig.json) of this repository.
 
 
 ## Using with a test-runner
@@ -202,16 +216,10 @@ Either run `ts-run` in the VS Code Javascript Debug Terminal or use the followin
                 "--import=@septh/ts-run"
             ],
             "program": "${workspaceFolder}/<path-to-your-script.ts>",
-            "windows": {
-                "program": "${workspaceFolder}\\<path-to-your-script.ts>"
-            },
             "skipFiles": [
                 "<node_internals>/**",
                 "**/node_modules/**"
-            ],
-            "resolveSourceMapLocations": [
-                "!**/node_modules/**"
-            ],
+            ]
         }
     ]
 }
