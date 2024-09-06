@@ -1,8 +1,5 @@
 {
   "typescript.tsdk": "node_modules\\typescript\\lib",
-  "terminal.integrated.automationProfile.windows": {
-    "path": "pwsh.exe"
-  },
   "debug.javascript.terminalOptions": {
     "skipFiles": [
       "<node_internals>/**",

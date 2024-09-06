@@ -15,9 +15,9 @@
     "allowSyntheticDefaultImports": true,
 
     // Input
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "checkJs": true,
-    "allowImportingTsExtensions": true,
 
     // Output
     "target": "ESNext",
