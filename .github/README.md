@@ -2,14 +2,14 @@
 > The minimalist TypeScript script runner for NodeJS.
 
 ### Features
-- On-demand TypeScript transpilation so fast you won't even notice.
-- Supports source maps for accurate stack traces.
+- Just-in-time TypeScript transpilation so fast you won't even notice.
+- Generates source maps for accurate stack traces.
 - Does not spawn another process to transpile TypeScript.
 - Does not spawn another Node process to run your script.
 - Strictly follows modern Node semantics for ESM and CommonJS modules.
 - Zero config: no config file, no command line arguments, no environment variables, no nothing.
 - Does not even need a `tsconfig.json`.
-- Light: only 220 kilobytes installed!
+- Extra-light: only 220 kilobytes installed!
 - Zero dependency!
 
 ### Non-features
@@ -111,10 +111,10 @@ Whatever your choice, remember that extensions are mandatory in ESM scripts.
 2. The `import namespace = require('specifier')` syntax is valid in ES modules only and is transformed to `const require = createRequire(); const namespace = require('specifier')`, with the [createRequire()](https://nodejs.org/api/module.html#modulecreaterequirefilename) call being hoisted if used several times.
 3. Dynamics imports are always left untouched, even in CJS modules.
 4. `export`s are transformed to `module.exports` assignments in CommonJS modules.
-5. Type-only `import`s and `export`s, whether explicit or implicit, are silently removed.
+5. Type-only `import`s and `export`s, whether explicit (with the `type` keyword) or implicit, are silently removed.
 
 #### Path substitutions
-TypeScript's module resolution specificities are not handled; instead, Node's module resolution algorithm is always used. In other words, `ts-run` always acts as if both `module` and `moduleResolution` were always set to `Node16` and `paths` was not set.
+TypeScript's module resolution specificities are not handled; instead, Node's module resolution algorithm is always used. In other words, `ts-run` always acts as if both `module` and `moduleResolution` were set to `Node16` and `paths` was empty.
 
 ### Sucrase
 `ts-run` uses a customized build of [Sucrase](https://github.com/alangpierce/sucrase) under the hood and therefore exhibits the same potential bugs and misbehaviors than Sucrase.
@@ -175,7 +175,7 @@ Add the following entry to your `package.json`:
 ```json
   "ava": {
     "extensions": {
-      "ts": "module",
+      "ts": "module",     // Or "commonjs", depending on what your package.json file says
       "mts": "module",
       "cts": "commonjs"
     },
@@ -185,7 +185,7 @@ Add the following entry to your `package.json`:
   }
 ```
 
-Here's an example: https://github.com/Septh/rollup-plugin-node-externals
+Here's a real-life example: https://github.com/Septh/rollup-plugin-node-externals
 
 ### With other test-runners
 Any test-runner that provides a mean to specify Node arguments (just like ava above) should work happily with `ts-run`.
@@ -199,7 +199,7 @@ NODE_OPTIONS="--import=@septh/ts-run" my-test-runner
 ## Debugging scripts with VS Code
 Because `ts-run` generates sourcemaps, you can set breakpoints in your script, inspect variables, etc.
 
-Either run `ts-run` in the VS Code Javascript Debug Terminal or use the following `launch.json` configuration (replace `<path-to-your-script.ts>` with the actual path to your script):
+Either run `ts-run` in the VS Code Javascript Debug Terminal or use the following `launch.json` configuration (replace `<path/to/your/script.ts>` with the actual path to your script):
 
 ```jsonc
 {
@@ -215,7 +215,7 @@ Either run `ts-run` in the VS Code Javascript Debug Terminal or use the followin
             "runtimeArgs": [
                 "--import=@septh/ts-run"
             ],
-            "program": "${workspaceFolder}/<path-to-your-script.ts>",
+            "program": "${workspaceFolder}/<path/to/your/script.ts>",
             "skipFiles": [
                 "<node_internals>/**",
                 "**/node_modules/**"
