@@ -56,10 +56,12 @@ export function install_cjs_hooks(defaultType: NodeJS.ModuleType) {
     const { _resolveFilename } = Module
     Module._resolveFilename = function _resolveFilenamePatch(request, ...otherArgs) {
         try {
-            return _resolveFilename.call(undefined, request, ...otherArgs)
+            // Let's try first with the .ts extension...
+            return _resolveFilename.call(Module, request.replace(jsExtRx, '.$1ts'), ...otherArgs)
         }
         catch {
-            return _resolveFilename.call(undefined, request.replace(jsExtRx, '.$1ts'), ...otherArgs)
+            // Otherwise, go as-is.
+            return _resolveFilename.call(Module, request, ...otherArgs)
         }
     }
 
