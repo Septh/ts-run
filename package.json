@@ -57,10 +57,10 @@
     "test": "node test/check-node-21.js && node ./lib/index.js test/01.argv.test.ts && node --import=./lib/index.js --test test/**/*.test.{ts,mts,cts}"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-commonjs": "^28.0.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-terser": "^0.4.4",
-    "@types/node": "^20.14.8",
+    "@types/node": "^22.7.2",
     "rimraf": "^6.0.1",
     "rollup": "^4.18.0",
     "rollup-plugin-fast-typescript": "^2.1.1",
