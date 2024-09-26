@@ -4,42 +4,20 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { createRequire } from 'node:module'
 
-describe("A .ts script inside a { type: 'module' } directory is ESM", () => {
+describe("A .ts script inside a { type: 'module' } directory is transpiled to ESM", () => {
 
     test("__filename does not exist", () => {
-        let threw = false
-        try {
-            __filename
-        }
-        catch(e) {
-            threw = e instanceof ReferenceError
-        }
-        assert.ok(threw)
+        assert.throws(() => __filename, new ReferenceError('__filename is not defined'))
     })
 
     test("__dirname does not exist", () => {
-        let threw = false
-        try {
-            __dirname
-        }
-        catch(e) {
-            threw = e instanceof ReferenceError
-        }
-        assert.ok(threw)
+        assert.throws(() => __dirname, new ReferenceError('__dirname is not defined'))
     })
 
-    test("require() does not exist", () => {
-        let threw = false
-        try {
-            require('./foo.cts')
-        }
-        catch(e) {
-            threw = e instanceof ReferenceError
-        }
-        assert.ok(threw)
+    test("require does not exist", () => {
+        assert.throws(() => require, new ReferenceError('require is not defined'))
     })
 
-    // cwd must be ts-run's root directory for this to work
     test("import.meta.url is available", () => {
         assert.strictEqual(import.meta.url, pathToFileURL(path.resolve('test', 'esm', '01.test.ts')).href)
     })

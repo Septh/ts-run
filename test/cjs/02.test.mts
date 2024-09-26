@@ -3,42 +3,20 @@ import assert from 'node:assert'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-describe("A .mts script inside a { type: 'commonjs' } directory is ESM", () => {
+describe("A .mts script inside a { type: 'commonjs' } directory transpiled to ESM", () => {
 
     test("__filename does not exist", () => {
-        let threw = false
-        try {
-            __filename
-        }
-        catch(e) {
-            threw = e instanceof ReferenceError
-        }
-        assert.ok(threw)
+        assert.throws(() => __filename, new ReferenceError('__filename is not defined'))
     })
 
     test("__dirname does not exist", () => {
-        let threw = false
-        try {
-            __dirname
-        }
-        catch(e) {
-            threw = e instanceof ReferenceError
-        }
-        assert.ok(threw)
+        assert.throws(() => __dirname, new ReferenceError('__dirname is not defined'))
     })
 
-    test("require() does not exist", () => {
-        let threw = false
-        try {
-            require('./foo.ts')
-        }
-        catch(e) {
-            threw = e instanceof ReferenceError
-        }
-        assert.ok(threw)
+    test("require does not exist", () => {
+        assert.throws(() => require, new ReferenceError('require is not defined'))
     })
 
-    // cwd must be ts-run's root directory for this to work
     test("import.meta.url is available", () => {
         assert.strictEqual(import.meta.url, pathToFileURL(path.resolve('test', 'cjs', '02.test.mts')).href)
     })
