@@ -43,7 +43,7 @@ install_cjs_hooks(defaultModuleType)
 //        (the first argument that does not start with a dash)
 // - (B): replace us in argv with that entry point
 // - (C): dynamically import the real entry point.
-if (process.argv[1] === fileURLToPath(self)) {
+if (await realpath(process.argv[1]) === await realpath(fileURLToPath(self))) {
 
     // (A)
     let realEntryPointIndex = -1
