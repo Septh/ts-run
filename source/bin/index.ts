@@ -8,8 +8,7 @@ if (argv.length >= 3 && !argv[2].startsWith('-')) {
 
     // Get the name of the real <script> entry point from the command line,
     // replace us in argv with that entry point, then dynamically import it.
-    argv[1] = resolve(argv[2])
-    argv.splice(2, 1)
+    argv.splice(1, 2, resolve(argv[2]))
     await import('../lib/register.js')
     await import(pathToFileURL(argv[1]).href)
 }
