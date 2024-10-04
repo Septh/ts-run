@@ -79,9 +79,9 @@ export const load: LoadHook = async (url, context, nextLoad) => {
         return nextLoad(url, context)
 
     // Load and transform the file.
-    const source = await readFile(filePath)
-        .then(buffer => transform(buffer.toString(), format, path.basename(filePath)))
-        .catch(() => undefined)
+    const source = await readFile(filePath).then(
+        buffer => transform(buffer.toString(), format, path.basename(filePath))
+    )
 
     return {
         source,
