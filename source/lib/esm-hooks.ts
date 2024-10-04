@@ -23,25 +23,23 @@ export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
             parentURL: undefined
         }
 
-        if (path.isAbsolute(specifier)) {
-            // On Windows, absolute paths must be valid file:// URLs.
-            specifier = pathToFileURL(specifier).href
+        // Likewise, since *we* are the actual entry point, a bare <script> specifier
+        // would be searched for in node_modules. This is probably not what the user
+        // expects.
+        if (!/^\.\.?\//.test(specifier)) {
+            specifier = path.isAbsolute(specifier)
+                ? specifier = pathToFileURL(specifier).href // On Windows, absolute paths must be valid file:// URLs.
+                : specifier = './' + specifier
         }
-        else if (/^\w/.test(specifier))
-            specifier = './' + specifier
     }
 
-    // Let's try first with the .ts extension...
-    const ts = specifier.replace(jsExtRx, '.$1ts')
-    if (ts !== specifier) {
-        try {
-            return await nextResolve(ts, context)
-        }
-        catch {}
+    // Try first with the .ts extension, otherwise go as-is.
+    try {
+        return await nextResolve(specifier.replace(jsExtRx, '.$1ts'), context)
     }
-
-    // Otherwise, go as-is.
-    return nextResolve(specifier, context)
+    catch {
+        return nextResolve(specifier, context)
+    }
 }
 
 const pkgTypeCache = new Map<string, NodeJS.ModuleType | null>()
@@ -78,7 +76,6 @@ async function nearestPackageType(file: string): Promise<NodeJS.ModuleType> {
 }
 
 export const load: LoadHook = async (url, context, nextLoad) => {
-
     // If this is not a TypeScript file, defer to the next hook in the chain.
     const fileUrl = new URL(url)
     const { protocol, pathname } = fileUrl

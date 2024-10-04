@@ -8,7 +8,8 @@ const execFile = promisify(child_process.execFile)
 
 describe("argv handling", () => {
 
-    const tsRun = './lib/index.js'
+    const tsRunAsCLI = './bin/index.js'
+    const tsRunAsLib = './lib/register.js'
     const script = './test/esm/args.ts'
     const args = [ 'arg1', 'arg2', 'arg3' ]
 
@@ -16,7 +17,7 @@ describe("argv handling", () => {
     const scriptPath = path.resolve(script)
 
     test("Leaves `process.argv` as-is when --import'ed", async () => {
-        const { stdout } = await execFile('node', [ `--import=${tsRun}`, script, ...args ])
+        const { stdout } = await execFile('node', [ `--import=${tsRunAsLib}`, script, ...args ])
         assert.deepStrictEqual(stdout.trim().split('\n'), [
             nodePath,
             scriptPath,
@@ -25,7 +26,7 @@ describe("argv handling", () => {
     })
 
     test("Correctly updates `process.argv` when run as CLI", async () => {
-        const { stdout } = await execFile('node', [ tsRun, script, ...args ])
+        const { stdout } = await execFile('node', [ tsRunAsCLI, script, ...args ])
         assert.deepStrictEqual(stdout.trim().split('\n'), [
             nodePath,
             scriptPath,

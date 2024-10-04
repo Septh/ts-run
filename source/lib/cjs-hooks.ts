@@ -52,7 +52,7 @@ function nearestPackageType(file: string, defaultType: NodeJS.ModuleType): NodeJ
     return defaultType
 }
 
-export function install_cjs_hooks(defaultType: NodeJS.ModuleType) {
+export function installCjsHooks(defaultType: NodeJS.ModuleType) {
     const { _resolveFilename } = Module
     Module._resolveFilename = function _resolveFilenamePatch(request, ...otherArgs) {
         try {

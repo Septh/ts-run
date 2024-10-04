@@ -1,21 +1,17 @@
 {
   "include": [
     "source",
-    "test",
     "rollup.config.js"
   ],
-  "exclude": [
-    "source/fix-sucrase"
-  ],
+  "exclude": [ "source/lib/fix-sucrase" ],
   "compilerOptions": {
 
     // Node stuff
-    "moduleResolution": "Bundler",
-    "module": "ESNext",
+    "moduleResolution": "Node16",
+    "module": "Node16",
     "allowSyntheticDefaultImports": true,
 
     // Input
-    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "checkJs": true,
 

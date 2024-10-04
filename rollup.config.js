@@ -2,21 +2,28 @@ import path from 'node:path'
 import { readFile } from 'fs/promises'
 import { nodeExternals } from 'rollup-plugin-node-externals'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
-import commonsJS from '@rollup/plugin-commonjs'
+import _commonsJS from '@rollup/plugin-commonjs'
 import { sucrase } from 'rollup-plugin-fast-typescript'
-import terser from '@rollup/plugin-terser'
+import _terser from '@rollup/plugin-terser'
 import { defineConfig } from 'rollup'
 
+/**
+ * @template T
+ * @param {{ default: T }} f
+ * @see {@link https://github.com/rollup/plugins/issues/1541#issuecomment-1837153165}
+ */
+const fix = (f) => /** @type {T} */(f)
+const commonJS = fix(_commonsJS)
+const terser = fix(_terser)
+
 export default defineConfig([
+
+    // bin/index.js
     {
-        input: [
-            'source/index.ts',
-            'source/esm-hooks.ts'
-        ],
+        input: 'source/bin/index.ts',
         output: {
-            dir: 'lib',
+            file: 'bin/index.js',
             format: 'esm',
-            generatedCode: 'es2015',
             sourcemap: true,
             sourcemapExcludeSources: true
         },
@@ -24,14 +31,41 @@ export default defineConfig([
             nodeExternals(),
             sucrase()
         ],
-        // Have to use Rollup's external option as rollup-plugin-node-externals
-        // only applies to Node builtins and npm dependencies.
-        external: [ './transform.cjs' ]
+        external: /\/register.js$/
     },
 
-    // This second configuration bundles Sucrase's parser to lib/transform.cjs
+    // lib/register.js, lib/esm-hooks.js
     {
-        input: 'source/transform.cts',
+        input: [
+            'source/lib/register.ts',
+            'source/lib/esm-hooks.ts'
+        ],
+        output: {
+            dir: 'lib',
+            format: 'esm',
+            sourcemap: true,
+            sourcemapExcludeSources: true
+        },
+        plugins: [
+            nodeExternals(),
+            sucrase(),
+            {
+                name: 'emit-esm-declaration-file',
+                async generateBundle() {
+                    this.emitFile({
+                        type: 'asset',
+                        fileName: 'register.d.ts',
+                        source: await readFile('./source/lib/register.d.ts')
+                    })
+                }
+            }
+        ],
+        external: /\/transform.cjs$/
+    },
+
+    // lib/transform.cjs
+    {
+        input: 'source/lib/transform.cts',
         output: {
             file: 'lib/transform.cjs',
             format: 'commonjs',
@@ -45,7 +79,7 @@ export default defineConfig([
         plugins: [
             nodeExternals(),
             nodeResolve(),
-            commonsJS(),
+            commonJS(),
             sucrase(),
             terser(),
 
@@ -55,7 +89,7 @@ export default defineConfig([
                 name: 'fix-sucrase',
                 async load(id) {
                     return id.endsWith('computeSourceMap.js')
-                        ? readFile(path.resolve('./source/fix-sucrase/computeSourceMap.js'), 'utf-8')
+                        ? readFile(path.resolve('./source/lib/fix-sucrase/computeSourceMap.js'), 'utf-8')
                         : null
                 }
             }

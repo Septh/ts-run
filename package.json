@@ -35,26 +35,23 @@
   },
   "type": "module",
   "bin": {
-    "ts-run": "./lib/index.js"
+    "ts-run": "./bin/index.js"
   },
   "exports": {
-    ".": {
-      "types": "./register.d.ts",
-      "default": "./lib/index.js"
-    },
-    "./register": {
-      "types": "./register.d.ts",
-      "default": "./lib/index.js"
-    }
+    "types": "./lib/register.d.ts",
+    "default": "./lib/register.js"
   },
   "imports": {
     "#package.json": "./package.json"
   },
   "scripts": {
-    "prebuild": "rimraf lib",
+    "prebuild": "rimraf bin lib",
     "build": "rollup --config",
     "watch": "npm run build -- --watch",
-    "test": "node test/check-node-21.js && node ./lib/index.js test/01.argv.test.ts && node --import=./lib/index.js --test test/**/*.test.{ts,mts,cts}"
+    "pretest": "npm run build",
+    "test": "npm run testOnly",
+    "testOnly": "node test/check-node-21.js && node --import=./lib/register.js --test test/**/*.test.{ts,mts,cts}",
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.0",
@@ -70,9 +67,9 @@
     "typescript": "^5.5.2"
   },
   "files": [
+    "./bin",
     "./lib",
-    "!*.map",
-    "register.d.ts"
+    "!*.map"
   ],
   "publishConfig": {
     "access": "public"

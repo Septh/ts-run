@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.json",
+  "include": [ "." ],
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "noEmit": true
+  }
+}

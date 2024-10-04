@@ -1,5 +1,3 @@
 node_modules/
+/bin
 /lib
-zz*
-*.tgz
-.np-config.json

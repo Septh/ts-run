@@ -2,7 +2,7 @@ import {GenMapping, maybeAddSegment, toEncodedMap} from "@jridgewell/gen-mapping
 
 
 
-import {charCodes} from "./parser/util/charcodes";
+import {charCodes} from "./parser/util/charcodes.js";
 
 
 
