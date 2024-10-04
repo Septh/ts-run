@@ -40,7 +40,7 @@ For everyday use, you may want to install `ts-run` globally:
 npm install -g @septh/ts-run
 ```
 
-and have it always available in your CLI:
+so it's always available in your CLI:
 
 ```sh
 ts-run path/to/some/script.ts
@@ -51,7 +51,14 @@ ts-run path/to/some/script.ts
 Or you may install it locally in a project:
 
 ```sh
+# with npm
 npm install --save-dev @septh/ts-run
+
+# with pnpm
+pnpm add --save-dev @septh/ts-run
+
+# with yarn
+yarn add --dev @septh/ts-run
 ```
 
 and then call it from the `scripts` section in `package.json`:
@@ -94,7 +101,7 @@ export const something = 'great'
 import { something } from './a.ts'
 ```
 
-Beginning with `ts-run` 1.2.6, `.js` specifiers are also supported:
+Beginning with 1.2.6, `.js` specifiers are also supported:
 
 ```ts
 // b.ts
@@ -105,7 +112,7 @@ Whatever your choice, remember that extensions are mandatory in ESM scripts.
 
 #### TypeScript specificities
 
-`ts-run` handles both JavaScript and TypeScript `import` and `export` declarations as one would expect. In short:
+`ts-run` handles `import` and `export` declarations as one would expect. In short:
 
 1. The `import ... from 'specifier'` syntax is left as is in ES modules and transformed to `const ... = require('specifier')` in CommonJS modules.
 2. The `import namespace = require('specifier')` syntax is valid in ES modules only and is transformed to `const require = createRequire(); const namespace = require('specifier')`, with the [createRequire()](https://nodejs.org/api/module.html#modulecreaterequirefilename) call being hoisted if used several times.
@@ -114,12 +121,12 @@ Whatever your choice, remember that extensions are mandatory in ESM scripts.
 5. Type-only `import`s and `export`s, whether explicit (with the `type` keyword) or implicit, are silently removed.
 
 #### Path substitutions
-TypeScript's module resolution specificities are not handled; instead, Node's module resolution algorithm is always used. In other words, `ts-run` always acts as if both `module` and `moduleResolution` were set to `Node16` and `paths` was empty.
+TypeScript's module resolution specificities are not handled; instead, Node's module resolution algorithm is always used. In other words, `ts-run` always acts as if both `moduleResolution` and `module` were set to `Node16` and `paths` was empty.
 
 ### Sucrase
 `ts-run` uses a customized build of [Sucrase](https://github.com/alangpierce/sucrase) under the hood and therefore exhibits the same potential bugs and misbehaviors than Sucrase.
 
-If `ts-run` seems to not work as you'd expect, you should first check [if this there is a Sucrase issue open for your problem](https://github.com/alangpierce/sucrase/issues). If not, please file an issue on `ts-run`.
+If `ts-run` seems to not work as you'd expect, you should first check [if this there is a Sucrase issue open for your problem](https://github.com/alangpierce/sucrase/issues).
 
 
 ## Authoring your scripts
@@ -152,14 +159,14 @@ The same is not true however for the TypeScript Language Server that your Intell
 }
 ```
 
-For reference, you can find such a `tsconfig.json` file at [the root](./tsconfig.json) of this repository.
+For reference, you can find such a `tsconfig.json` file in the [test](./test/tsconfig.json) directory of this repository.
 
 
 ## Using with a test-runner
 I have tested `ts-run` with [ava](https://github.com/avajs/ava) and [Node itself](https://nodejs.org/api/test.html) and it works very well in both cases. I can see no reason why it wouldn't work with another test-runner.
 
 ### With node:test
-This very repo is using Node as its test-runner of choice. Here's what your `scripts` section in `package.json` may look like:
+This very repo is using Node as its test-runner of choice. Here's what your `scripts` section in `package.json` might look like:
 
 ```json
   "scripts": {
@@ -175,7 +182,7 @@ Add the following entry to your `package.json`:
 ```json
   "ava": {
     "extensions": {
-      "ts": "module",     // Or "commonjs", depending on what your package.json file says
+      "ts": "module",     // Or "commonjs", depending on what your package.json says
       "mts": "module",
       "cts": "commonjs"
     },
