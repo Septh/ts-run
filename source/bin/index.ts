@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import { createRequire } from 'node:module'
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -12,15 +11,10 @@ if (argv.length >= 3 && !argv[2].startsWith('-')) {
     await import('../lib/register.js')
     await import(pathToFileURL(argv[1]).href)
 }
-else {
-    const { name, version } = createRequire(import.meta.url)('#package.json') as typeof import('#package.json')
-    const shortName = name.split('/').pop()!
-
+else if (argv.length === 3 && /^-v|--version$/.test(argv[2])) {
     // Respond to `ts-run [-v | --version]` or print usage.
-    if (argv.length === 3 && /^-v|--version$/.test(argv[2])) {
-        console.log(`Node.js v${process.versions.node}, ${shortName} v${version}`)
-    }
-    else {
-        console.log(`Usage: ${shortName} -v | <script.ts>`)
-    }
+    console.log(`Node.js v${process.versions.node}, __TSRUN_NAME__ v__TSRUN_VERSION__`)
+}
+else {
+    console.log('Usage: __TSRUN_NAME__ -v | <script.ts>')
 }

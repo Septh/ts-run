@@ -1,8 +1,10 @@
 import path from 'node:path'
 import { readFile } from 'fs/promises'
+import { createRequire } from 'node:module'
 import { nodeExternals } from 'rollup-plugin-node-externals'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
-import _commonsJS from '@rollup/plugin-commonjs'
+import _commonsJs from '@rollup/plugin-commonjs'
+import _replace from '@rollup/plugin-replace'
 import { sucrase } from 'rollup-plugin-fast-typescript'
 import _terser from '@rollup/plugin-terser'
 import { defineConfig } from 'rollup'
@@ -13,8 +15,24 @@ import { defineConfig } from 'rollup'
  * @see {@link https://github.com/rollup/plugins/issues/1541#issuecomment-1837153165}
  */
 const fix = (f) => /** @type {T} */(f)
-const commonJS = fix(_commonsJS)
+const commonJs = fix(_commonsJs)
+const replace = fix(_replace)
 const terser = fix(_terser)
+
+/** @type {import('#package.json')} */
+const { name, version } = createRequire(import.meta.url)('#package.json')
+
+/** @type {import('@rollup/plugin-replace').RollupReplaceOptions} */
+const replacements = {
+    include: [ '**/index.js', '**/register.js' ],
+    preventAssignment: true,
+    sourceMap: true,
+    delimiters: [ '', '' ],
+    values: {
+        __TSRUN_NAME__: name.split('/')[1],
+        __TSRUN_VERSION__: version
+    }
+}
 
 export default defineConfig([
 
@@ -25,11 +43,12 @@ export default defineConfig([
             file: 'bin/index.js',
             format: 'esm',
             sourcemap: true,
-            sourcemapExcludeSources: true
+            sourcemapExcludeSources: true,
         },
         plugins: [
             nodeExternals(),
-            sucrase()
+            sucrase(),
+            replace(replacements)
         ],
         external: /\/register.js$/
     },
@@ -49,8 +68,9 @@ export default defineConfig([
         plugins: [
             nodeExternals(),
             sucrase(),
+            replace(replacements),
             {
-                name: 'emit-esm-declaration-file',
+                name: 'emit-dst',
                 async generateBundle() {
                     this.emitFile({
                         type: 'asset',
@@ -79,7 +99,7 @@ export default defineConfig([
         plugins: [
             nodeExternals(),
             nodeResolve(),
-            commonJS(),
+            commonJs(),
             sucrase(),
             terser(),
 

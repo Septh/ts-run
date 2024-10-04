@@ -5,7 +5,7 @@ import { installCjsHooks } from './cjs-hooks.js'
 const [ major, minor, patch ] = process.versions.node.split('.').map(Number)
 assert(
     major >= 21 || (major === 20 && minor >= 6) || (major === 18 && minor >= 19),
-    `Unsupported NodeJS version ${major}.${minor}.${patch}. ts-run requires Node 18.19.0+, Node 20.6.0+ or Node 21+.`
+    `Unsupported NodeJS version ${major}.${minor}.${patch}. __TSRUN_NAME__ requires Node 18.19.0+, Node 20.6.0+ or Node 21+.`
 )
 
 // Enable source map support.
