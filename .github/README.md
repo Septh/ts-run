@@ -108,7 +108,6 @@ Beginning with 1.2.6, `.js` specifiers are also supported:
 import { something } from './a.js'  // works too!
 ```
 
-Whatever your choice, remember that extensions are mandatory in ESM scripts.
 
 #### TypeScript specificities
 
@@ -126,7 +125,7 @@ TypeScript's module resolution specificities are not handled; instead, Node's mo
 ### Sucrase
 `ts-run` uses a customized build of [Sucrase](https://github.com/alangpierce/sucrase) under the hood and therefore exhibits the same potential bugs and misbehaviors than Sucrase.
 
-If `ts-run` seems to not work as you'd expect, you should first check [if this there is a Sucrase issue open for your problem](https://github.com/alangpierce/sucrase/issues).
+If `ts-run` seems to not work as you'd expect, you should first check if there is a [Sucrase issue](https://github.com/alangpierce/sucrase/issues) open for your problem.
 
 
 ## Authoring your scripts
