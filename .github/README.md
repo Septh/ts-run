@@ -89,7 +89,15 @@ node --import=@septh/ts-run ./scripts/do-something.ts
 ### imports and exports
 
 #### Specifiers
-Simply import your `.ts` scripts as you would with plain Javascript:
+`ts-run` handles `import` and `export` declarations as one would expect. In short:
+
+* The `import ... from 'specifier'` syntax is left as is in ES modules and transformed to `const ... = require('specifier')` in CommonJS modules.
+* The `import namespace = require('specifier')` syntax is valid in ES modules only and is transformed to `const require = createRequire(import.meta.url); const namespace = require('specifier')`, with the [createRequire()](https://nodejs.org/api/module.html#modulecreaterequirefilename) call being hoisted if used several times.
+* Dynamics imports are always left untouched, even in CJS modules.
+* `export`s are transformed to `module.exports` assignments in CommonJS modules.
+* Type-only `import`s and `export`s, whether explicit (with the `type` keyword) or implicit, are silently removed.
+
+Therefore, you should simply import your `.ts` scripts as you would with plain Javascript:
 
 ```ts
 // a.ts
@@ -105,27 +113,19 @@ Beginning with 1.2.6, `.js` specifiers are also supported:
 
 ```ts
 // b.ts
-import { something } from './a.js'  // works too!
+import { something } from './a.js'  // works too
 ```
 
-
 #### TypeScript specificities
-
-`ts-run` handles `import` and `export` declarations as one would expect. In short:
-
-1. The `import ... from 'specifier'` syntax is left as is in ES modules and transformed to `const ... = require('specifier')` in CommonJS modules.
-2. The `import namespace = require('specifier')` syntax is valid in ES modules only and is transformed to `const require = createRequire(); const namespace = require('specifier')`, with the [createRequire()](https://nodejs.org/api/module.html#modulecreaterequirefilename) call being hoisted if used several times.
-3. Dynamics imports are always left untouched, even in CJS modules.
-4. `export`s are transformed to `module.exports` assignments in CommonJS modules.
-5. Type-only `import`s and `export`s, whether explicit (with the `type` keyword) or implicit, are silently removed.
-
-#### Path substitutions
 TypeScript's module resolution specificities are not handled; instead, Node's module resolution algorithm is always used. In other words, `ts-run` always acts as if both `moduleResolution` and `module` were set to `Node16` and `paths` was empty.
 
 ### Sucrase
 `ts-run` uses a customized build of [Sucrase](https://github.com/alangpierce/sucrase) under the hood and therefore exhibits the same potential bugs and misbehaviors than Sucrase.
 
-If `ts-run` seems to not work as you'd expect, you should first check if there is a [Sucrase issue](https://github.com/alangpierce/sucrase/issues) open for your problem.
+Of particular attention, the following quote from Sucrase's README:
+> Decorators, private fields, throw expressions, generator arrow functions, and do expressions are all unsupported in browsers and Node (as of this writing), and Sucrase doesn't make an attempt to transpile them.
+
+Apart from this, if `ts-run` seems to not work as you'd expect, you should first check if there is a [Sucrase issue](https://github.com/alangpierce/sucrase/issues) open for your problem.
 
 
 ## Authoring your scripts
