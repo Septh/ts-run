@@ -88,7 +88,6 @@ node --import=@septh/ts-run ./scripts/do-something.ts
 
 ### imports and exports
 
-#### Specifiers
 `ts-run` handles `import` and `export` declarations as one would expect. In short:
 
 * The `import ... from 'specifier'` syntax is left as is in ES modules and transformed to `const ... = require('specifier')` in CommonJS modules.
@@ -97,7 +96,8 @@ node --import=@septh/ts-run ./scripts/do-something.ts
 * `export`s are transformed to `module.exports` assignments in CommonJS modules.
 * Type-only `import`s and `export`s, whether explicit (with the `type` keyword) or implicit, are silently removed.
 
-Therefore, you should simply import your `.ts` scripts as you would with plain Javascript:
+#### Specifiers
+Given the above, you should simply import your `.ts` scripts as you would with plain Javascript:
 
 ```ts
 // a.ts
@@ -116,16 +116,18 @@ Beginning with 1.2.6, `.js` specifiers are also supported:
 import { something } from './a.js'  // works too
 ```
 
+However, using .`ts` specifiers is highly recommended as a mean to ensure a smooth transition with [Node's own `--experimental-strip-types` option](https://nodejs.org/api/typescript.html#type-stripping).
+
 #### TypeScript specificities
 TypeScript's module resolution specificities are not handled; instead, Node's module resolution algorithm is always used. In other words, `ts-run` always acts as if both `moduleResolution` and `module` were set to `Node16` and `paths` was empty.
 
 ### Sucrase
-`ts-run` uses a customized build of [Sucrase](https://github.com/alangpierce/sucrase) under the hood and therefore exhibits the same potential bugs and misbehaviors than Sucrase.
+`ts-run` uses a customized build of [Sucrase](https://github.com/alangpierce/sucrase) under the hood and therefore exhibits the same potential bugs and misbehaviors as Sucrase.
 
 Of particular attention, the following quote from Sucrase's README:
 > Decorators, private fields, throw expressions, generator arrow functions, and do expressions are all unsupported in browsers and Node (as of this writing), and Sucrase doesn't make an attempt to transpile them.
 
-Apart from this, if `ts-run` seems to not work as you'd expect, you should first check if there is a [Sucrase issue](https://github.com/alangpierce/sucrase/issues) open for your problem.
+Apart from this, if `ts-run` doesn't seem to work as you'd expect, you should first check if there is a [Sucrase issue](https://github.com/alangpierce/sucrase/issues) open for your problem.
 
 
 ## Authoring your scripts
@@ -178,7 +180,7 @@ This very repo is using Node as its test-runner of choice. Here's what your `scr
 ### With ava
 Add the following entry to your `package.json`:
 
-```json
+```jsonc
   "ava": {
     "extensions": {
       "ts": "module",     // Or "commonjs", depending on what your package.json says
