@@ -6,11 +6,6 @@
   "exclude": [ "source/lib/fix-sucrase" ],
   "compilerOptions": {
 
-    // Node stuff
-    "moduleResolution": "Node16",
-    "module": "Node16",
-    "allowSyntheticDefaultImports": true,
-
     // Input
     "resolveJsonModule": true,
     "checkJs": true,
@@ -18,6 +13,11 @@
     // Output
     "target": "ESNext",
     "noEmit": true,
+
+    // Module
+    "module": "Node16",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
 
     // Libs
     "lib": [ "ESNext" ],
