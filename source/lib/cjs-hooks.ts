@@ -2,7 +2,7 @@ import path from 'node:path'
 import Module, { createRequire } from 'node:module'
 import { readFileSync } from 'node:fs'
 
-const require = createRequire(import.meta.url)
+export const require = createRequire(import.meta.url)
 const jsExtRx = /\.([cm])?js$/
 
 function transpile(m: Module, format: NodeJS.ModuleType, filePath: string) {

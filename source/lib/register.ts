@@ -1,12 +1,11 @@
-import assert from 'node:assert/strict'
 import module from 'node:module'
-import { installCjsHooks } from './cjs-hooks.js'
+import { installCjsHooks, require } from './cjs-hooks.js'
 
 const [ major, minor, patch ] = process.versions.node.split('.').map(Number)
-assert(
-    major >= 21 || (major === 20 && minor >= 6) || (major === 18 && minor >= 19),
-    `Unsupported NodeJS version ${major}.${minor}.${patch}. __TSRUN_NAME__ requires Node 18.19.0+, Node 20.6.0+ or Node 21+.`
-)
+if (!(major >= 21 || (major === 20 && minor >= 6) || (major === 18 && minor >= 19))) {
+    const { name } = require('#package.json') as typeof import('#package.json')
+    throw new Error(`Unsupported NodeJS version ${major}.${minor}.${patch}. ${name} requires Node 18.19.0+, Node 20.6.0+ or Node 21+.`)
+}
 
 // Enable source map support.
 process.setSourceMapsEnabled(true)

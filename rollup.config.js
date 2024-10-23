@@ -1,38 +1,22 @@
 import path from 'node:path'
 import { readFile } from 'fs/promises'
-import { createRequire } from 'node:module'
 import { nodeExternals } from 'rollup-plugin-node-externals'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
-import _commonsJs from '@rollup/plugin-commonjs'
-import _replace from '@rollup/plugin-replace'
 import { sucrase } from 'rollup-plugin-fast-typescript'
-import _terser from '@rollup/plugin-terser'
 import { defineConfig } from 'rollup'
+import { fileURLToPath } from 'node:url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 /**
  * @template T
  * @param {{ default: T }} f
  * @see {@link https://github.com/rollup/plugins/issues/1541#issuecomment-1837153165}
  */
-const fix = (f) => /** @type {T} */(f)
-const commonJs = fix(_commonsJs)
-const replace = fix(_replace)
-const terser = fix(_terser)
-
-/** @type {import('#package.json')} */
-const { name, version } = createRequire(import.meta.url)('#package.json')
-
-/** @type {import('@rollup/plugin-replace').RollupReplaceOptions} */
-const replacements = {
-    include: [ '**/index.js', '**/register.js' ],
-    preventAssignment: true,
-    sourceMap: true,
-    delimiters: [ '', '' ],
-    values: {
-        __TSRUN_NAME__: name.split('/')[1],
-        __TSRUN_VERSION__: version
-    }
-}
+const fix = f => /** @type {T} */(f)
+const { default: commonJs } = fix(await import('@rollup/plugin-commonjs'))
+const { default: terser }   = fix(await import('@rollup/plugin-terser'))
 
 export default defineConfig([
 
@@ -47,8 +31,7 @@ export default defineConfig([
         },
         plugins: [
             nodeExternals(),
-            sucrase(),
-            replace(replacements)
+            sucrase()
         ],
         external: /\/register.js$/
     },
@@ -68,9 +51,8 @@ export default defineConfig([
         plugins: [
             nodeExternals(),
             sucrase(),
-            replace(replacements),
             {
-                name: 'emit-dst',
+                name: 'emit-dts',
                 async generateBundle() {
                     this.emitFile({
                         type: 'asset',
@@ -109,7 +91,7 @@ export default defineConfig([
                 name: 'fix-sucrase',
                 async load(id) {
                     return id.endsWith('computeSourceMap.js')
-                        ? readFile(path.resolve('./source/lib/fix-sucrase/computeSourceMap.js'), 'utf-8')
+                        ? readFile(path.resolve(__dirname, './source/lib/fix-sucrase/computeSourceMap.js'), 'utf-8')
                         : null
                 }
             }
