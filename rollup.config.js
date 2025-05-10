@@ -1,22 +1,24 @@
 import path from 'node:path'
-import { readFile } from 'fs/promises'
+import { readFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
+import { defineConfig } from 'rollup'
 import { nodeExternals } from 'rollup-plugin-node-externals'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import { sucrase } from 'rollup-plugin-fast-typescript'
-import { defineConfig } from 'rollup'
-import { fileURLToPath } from 'node:url'
+
+/**
+ * Workaround for the wrong typings in all rollup plugins
+ * (see https://github.com/rollup/plugins/issues/1541#issuecomment-1837153165)
+ * @template T
+ * @param {{ default: { default: T } }} module
+ * @returns {T}
+ */
+const rollupPlugin = ({ default: plugin }) => /** @type {T} */(plugin)
+const commonJS = rollupPlugin(await import('@rollup/plugin-commonjs'))
+const terser = rollupPlugin(await import('@rollup/plugin-terser'))
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-
-/**
- * @template T
- * @param {{ default: T }} f
- * @see {@link https://github.com/rollup/plugins/issues/1541#issuecomment-1837153165}
- */
-const fix = f => /** @type {T} */(f)
-const { default: commonJs } = fix(await import('@rollup/plugin-commonjs'))
-const { default: terser }   = fix(await import('@rollup/plugin-terser'))
 
 export default defineConfig([
 
@@ -81,7 +83,7 @@ export default defineConfig([
         plugins: [
             nodeExternals(),
             nodeResolve(),
-            commonJs(),
+            commonJS(),
             sucrase(),
             terser(),
 
