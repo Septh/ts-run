@@ -1,11 +1,11 @@
 import path from 'node:path'
-import Module, { createRequire } from 'node:module'
+import module from 'node:module'
 import { readFileSync } from 'node:fs'
 
-export const require = createRequire(import.meta.url)
+export const require = module.createRequire(import.meta.url)
 const jsExtRx = /\.([cm])?js$/
 
-function transpile(m: Module, format: NodeJS.ModuleType, filePath: string) {
+function transpile(m: module, format: NodeJS.ModuleType, filePath: string) {
     // Notes:
     // - This function is called by the CJS loader so it must be sync.
     // - We lazy-load Sucrase as the CJS loader may well never be used
@@ -52,20 +52,20 @@ function nearestPackageType(file: string, defaultType: NodeJS.ModuleType): NodeJ
     return defaultType
 }
 
-export function installCjsHooks(defaultType: NodeJS.ModuleType) {
-    const { _resolveFilename } = Module
-    Module._resolveFilename = function _resolveFilenamePatch(request, ...otherArgs) {
+export function installCjsHooks(defaultModuleType: NodeJS.ModuleType) {
+    const { _resolveFilename } = module
+    module._resolveFilename = function _resolveFilenamePatch(request, ...otherArgs) {
         try {
             // Let's try first with the .ts extension...
-            return _resolveFilename.call(Module, request.replace(jsExtRx, '.$1ts'), ...otherArgs)
+            return _resolveFilename.call(module, request.replace(jsExtRx, '.$1ts'), ...otherArgs)
         }
         catch {
             // Otherwise, go as-is.
-            return _resolveFilename.call(Module, request, ...otherArgs)
+            return _resolveFilename.call(module, request, ...otherArgs)
         }
     }
 
-    Module._extensions['.ts']  = (m, filename) => transpile(m, nearestPackageType(filename, defaultType), filename)
-    Module._extensions['.cts'] = (m, filename) => transpile(m, 'commonjs', filename)
-    Module._extensions['.mts'] = (m, filename) => transpile(m, 'module', filename)
+    module._extensions['.ts']  = (m, filename) => transpile(m, nearestPackageType(filename, defaultModuleType), filename)
+    module._extensions['.cts'] = (m, filename) => transpile(m, 'commonjs', filename)
+    module._extensions['.mts'] = (m, filename) => transpile(m, 'module', filename)
 }
