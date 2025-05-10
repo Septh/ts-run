@@ -26,5 +26,5 @@ See [the repo on Github](https://github.com/Septh/ts-run#readme) for full docume
 - No REPL support.
 
 
-## Licence
+### Licence
 MIT.
