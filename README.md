@@ -1,3 +1,12 @@
+<p>
+
+![NPM Version](https://img.shields.io/npm/v/@septh/ts-run?label=latest)
+![Node](https://img.shields.io/node/v-lts/%40septh%2Fts-run)
+![NPM Downloads](https://img.shields.io/npm/dm/@septh/ts-run)
+![NPM License](https://img.shields.io/npm/l/@septh/ts-run)
+
+</p>
+
 # ts-run
 > The minimalist TypeScript script runner for NodeJS.
 
