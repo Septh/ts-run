@@ -1,9 +1,9 @@
 import module from 'node:module'
-import { installCjsHooks, require } from './cjs-hooks.js'
+import { installCjsHooks } from './cjs-hooks.js'
 
 const [ major, minor, patch ] = process.versions.node.split('.').map(Number)
 if (!(major >= 21 || (major === 20 && minor >= 6) || (major === 18 && minor >= 19))) {
-    const { name } = require('#package.json') as typeof import('#package.json')
+    const { name } = module.createRequire(import.meta.url)('#package.json') as typeof import('#package.json')
     throw new Error(`Unsupported NodeJS version ${major}.${minor}.${patch}. ${name} requires Node 18.19.0+, Node 20.6.0+ or Node 21+.`)
 }
 
