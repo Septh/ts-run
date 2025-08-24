@@ -28,7 +28,7 @@ export default defineConfig([
         output: {
             file: 'bin/index.js',
             format: 'esm',
-            sourcemap: true,
+            sourcemap: 'hidden',
             sourcemapExcludeSources: true,
         },
         plugins: [
@@ -47,7 +47,7 @@ export default defineConfig([
         output: {
             dir: 'lib',
             format: 'esm',
-            sourcemap: true,
+            sourcemap: 'hidden',
             sourcemapExcludeSources: true
         },
         plugins: [
