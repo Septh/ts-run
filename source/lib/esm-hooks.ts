@@ -67,13 +67,13 @@ export const load: LoadHook = async (url, context, nextLoad) => {
     // Determine the format based on the file's extension
     // or the nearest package.json's `type` field.
     const filePath = fileURLToPath(fileUrl)
-    const format = context.format ?? (
+    const format = (context.format ?? (
         ext === '.ts'
             ? await nearestPackageType(filePath)
             : ext === '.mts'
                 ? 'module'
                 : 'commonjs'
-    )
+    )).replace(/-typescript$/, '')
 
     if (format !== 'module' && format !== 'commonjs')
         return nextLoad(url, context)
