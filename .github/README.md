@@ -162,14 +162,17 @@ The same is not true however for the TypeScript Language Server that your Intell
 {
   "compilerOptions": {
 
-    // This tells the TypeScript language server that this directory contains Node scripts.
+    // This tells TypeScript that this directory contains Node scripts.
     "module": "NodeNext",
 
-    // For scripts that use .ts import specifiers (recommended).
-    "allowImportingTsExtensions": true,
+    // Rewrite TypeScript file extensions in relative import paths
+    // to their JavaScript equivalent in output files.
+    "rewriteRelativeImportExtensions": true,
 
-    // `noEmit` is required when `allowImportingTsExtensions` is set.
-    "noEmit": true,
+    // `rewriteRelativeImportExtensions` is a TS 5.7+ option.
+    // With earlier versions of TypeScript, use the following instead:
+    // "allowImportingTsExtensions": true,
+    // "noEmit": true,
 
     // Scripts are transpiled in isolation; this imposes a few restrictions
     // on some TypeScript features like const enums or namespaces.
