@@ -37,17 +37,6 @@ ts-run ./some-script.ts
 The idea is that you take advantage of your IntelliSense-compatible editor to author your scripts with full type checking on, and `ts-run` will transparently run them without you having to run the TypeScript compliler beforehand.
 
 
-## Differences with Node's builtin TypeScript support
-
-Since 22.6.0, NodeJS has [builtin support for running TypeScript scripts](https://nodejs.org/api/typescript.html#modules-typescript) through the `--experimental-strip-types` (now on by default, opt-out) and `--experimental-transform-types` (opt-in) command line flags:
-
-```sh
-node --experimental-strip-types --experimental-transform-types ./some-script.ts
-```
-
-This works quite well and the transforms are even faster than `ts-run`'s since their are done in WebAssembly through the [Amaro module](https://github.com/nodejs/amaro). However, Amaro does not perform all the work `ts-run` does, especially transforming `import`s to `require` calls in CommonJS scripts.
-
-
 ## Installation and usage
 `ts-run` requires a modern (as of january 2024) version of NodeJS:
 - Node 18 version 18.19.0 or later
@@ -102,6 +91,17 @@ npx ts-run ./scripts/do-something.ts
 # with node --import
 node --import=@septh/ts-run ./scripts/do-something.ts
 ```
+
+
+## Differences with Node's builtin TypeScript support
+
+Since 22.6.0, NodeJS has [builtin support for running TypeScript scripts](https://nodejs.org/api/typescript.html#modules-typescript) through the `--experimental-strip-types` (now on by default, opt-out) and `--experimental-transform-types` (opt-in) command line flags:
+
+```sh
+node --experimental-strip-types --experimental-transform-types ./some-script.ts
+```
+
+This works quite well and the transforms are even faster than `ts-run`'s since their are done in WebAssembly through the [Amaro module](https://github.com/nodejs/amaro). However, Amaro does not perform all the work `ts-run` does, especially transforming `import`s to `require` calls in CommonJS scripts.
 
 
 ## TypeScript to JavaScript considerations
