@@ -60,6 +60,7 @@
     "@types/node": "^24.3.0",
     "rimraf": "^6.0.1",
     "rollup": "^4.24.0",
+    "rollup-plugin-code-raker": "^1.0.1",
     "rollup-plugin-fast-typescript": "^2.1.1",
     "rollup-plugin-node-externals": "^8.0.0",
     "sucrase": "^3.35.0",

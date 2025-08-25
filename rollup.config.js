@@ -5,6 +5,7 @@ import { defineConfig } from 'rollup'
 import { nodeExternals } from 'rollup-plugin-node-externals'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import { sucrase } from 'rollup-plugin-fast-typescript'
+import { codeRaker } from 'rollup-plugin-code-raker'
 
 /**
  * Workaround for the wrong typings in all rollup plugins
@@ -33,7 +34,8 @@ export default defineConfig([
         },
         plugins: [
             nodeExternals(),
-            sucrase()
+            sucrase(),
+            codeRaker({ console: false })
         ],
         external: /\/register.js$/
     },
@@ -53,6 +55,7 @@ export default defineConfig([
         plugins: [
             nodeExternals(),
             sucrase(),
+            codeRaker({ console: false }),
             {
                 name: 'emit-dts',
                 async generateBundle() {
@@ -98,6 +101,7 @@ export default defineConfig([
                 }
             }
         ],
+
         // Sucrase has MANY circular dependencies :/
         onLog(level, log, handler) {
             if (log.code === 'CIRCULAR_DEPENDENCY')
