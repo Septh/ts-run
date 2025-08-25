@@ -1,6 +1,5 @@
 import path from 'node:path'
 import { readFile } from 'node:fs/promises'
-import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'rollup'
 import { nodeExternals } from 'rollup-plugin-node-externals'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
@@ -11,15 +10,12 @@ import { codeRaker } from 'rollup-plugin-code-raker'
  * Workaround for the wrong typings in all rollup plugins
  * (see https://github.com/rollup/plugins/issues/1541#issuecomment-1837153165)
  * @template T
- * @param {{ default: { default: T } }} module
+ * @param {{ default: { default: T } }} plugin
  * @returns {T}
  */
 const rollupPlugin = ({ default: plugin }) => /** @type {T} */(plugin)
 const commonJS = rollupPlugin(await import('@rollup/plugin-commonjs'))
 const terser = rollupPlugin(await import('@rollup/plugin-terser'))
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 export default defineConfig([
 
@@ -96,7 +92,7 @@ export default defineConfig([
                 name: 'fix-sucrase',
                 async load(id) {
                     return id.endsWith('computeSourceMap.js')
-                        ? readFile(path.resolve(__dirname, './source/lib/fix-sucrase/computeSourceMap.js'), 'utf-8')
+                        ? readFile(path.resolve(import.meta.dirname, './source/lib/fix-sucrase/computeSourceMap.js'), 'utf-8')
                         : null
                 }
             }
