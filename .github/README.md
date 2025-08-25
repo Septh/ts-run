@@ -209,7 +209,7 @@ Add the following entry to your `package.json`:
 ```jsonc
   "ava": {
     "extensions": {
-      "ts": "module",     // Or "commonjs", depending on what your package.json says
+      "ts": "module",     // Or "commonjs", depending on what the `type` field says
       "mts": "module",
       "cts": "commonjs"
     },
@@ -254,6 +254,7 @@ Either run `ts-run` in the VS Code Javascript Debug Terminal or use the followin
                 "--import=@septh/ts-run"
             ],
             "program": "${workspaceFolder}/<path/to/your/script.ts>",
+            "args": [ "--what", "ever" ],
             "skipFiles": [
                 "<node_internals>/**",
                 "**/node_modules/**"
