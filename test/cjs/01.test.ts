@@ -18,19 +18,40 @@ describe("A .ts script inside a { type: 'commonjs' } directory is transpiled to 
         assert(typeof require.resolve === 'function')
     })
 
-    test("extension-less specifiers are supported for require()", () => {
-        const foo = require('./foo')
-        assert.strictEqual(foo, 'foo')
+    describe('require() .ts files', () => {
+
+        test("with a .ts specifier", () => {
+            const foo = require('./foo.ts')
+            assert.strictEqual(foo, 'foo')
+        })
+
+        test("with a .js specifier", () => {
+            const foo = require('./foo.js')
+            assert.strictEqual(foo, 'foo')
+        })
+
+        test("with an extension-less specifier", () => {
+            const foo = require('./foo')
+            assert.strictEqual(foo, 'foo')
+        })
     })
 
-    test(".ts specifiers are supported for require()", () => {
-        const foo = require('./foo.ts')
-        assert.strictEqual(foo, 'foo')
-    })
+    describe('require() .js files', () => {
 
-    test(".js specifiers are supported for require()", () => {
-        const foo = require('./foo.js')
-        assert.strictEqual(foo, 'foo')
+        test("with a .js specifier", () => {
+            const foo = require('./foo_js.js')
+            assert.strictEqual(foo, 'foo_js')
+        })
+
+        test("with a .ts specifier", () => {
+            const foo = require('./foo_js.ts')
+            assert.strictEqual(foo, 'foo_js')
+        })
+
+        test("with an extension-less specifier", () => {
+            const foo = require('./foo_js')
+            assert.strictEqual(foo, 'foo_js')
+        })
     })
 
     test("directory imports are supported when using require()", () => {
