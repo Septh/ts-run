@@ -65,7 +65,7 @@
     "rollup-plugin-node-externals": "^8.0.0",
     "sucrase": "^3.35.0",
     "tslib": "^2.6.3",
-    "typescript": "^5.5.2"
+    "typescript": "5.9"
   },
   "files": [
     "./bin",

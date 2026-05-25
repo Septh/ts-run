@@ -13,12 +13,6 @@ declare global {
     interface PackageJson {
         type?: NodeJS.ModuleType
     }
-
-    // The data passed to the initialize() hook.
-    interface HookData {
-        self: string
-        defaultModuleType: NodeJS.ModuleType
-    }
 }
 
 declare module 'module' {

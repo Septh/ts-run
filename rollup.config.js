@@ -36,14 +36,16 @@ export default defineConfig([
             sucrase(),
             codeRaker({ console: false })
         ],
-        external: /\/register.js$/
+        external: /\/register\.[cm]?[jt]s$/
     },
 
-    // lib/register.js, lib/esm-hooks.js
+    // lib/register.js, lib/hooks.js, lib/hooks-legacy.js, lib/nearest-package-type.js
     {
         input: [
             'source/lib/register.ts',
-            'source/lib/esm-hooks.ts'
+            'source/lib/hooks.ts',
+            'source/lib/hooks-legacy.ts',
+            'source/lib/nearest-package-type.ts'
         ],
         output: {
             dir: 'lib',
@@ -54,7 +56,7 @@ export default defineConfig([
         plugins: [
             nodeExternals(),
             sucrase(),
-            codeRaker({ console: false }),
+            codeRaker(),
             {
                 name: 'emit-dts',
                 async generateBundle() {
@@ -66,7 +68,7 @@ export default defineConfig([
                 }
             }
         ],
-        external: /\/transform.cjs$/
+        external: [ /\/hooks.*\.[cm]?[jt]s$/, /\/nearest.*\.[cm]?[jt]s$/, /\/transform\.[cm]?[jt]s$/ ]
     },
 
     // lib/transform.cjs
