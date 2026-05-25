@@ -15,9 +15,9 @@
     "noEmit": true,
 
     // Module
-    "module": "Node16",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
+    "module": "Node20",
+    // "esModuleInterop": true,
+    // "allowSyntheticDefaultImports": true,
 
     // Libs
     "lib": [ "ESNext" ],
