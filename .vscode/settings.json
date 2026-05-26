@@ -5,5 +5,9 @@
       "<node_internals>/**",
       "**/node_modules/**"
     ]
-  }
+  },
+  "cSpell.words": [
+    "misbehaviors",
+    "sourcemaps"
+  ]
 }
