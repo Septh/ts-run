@@ -11,6 +11,7 @@
 > The minimalist TypeScript script runner for NodeJS.
 
 ### Features
+- **Runs scripts Node's builtin TypeScript parser won't**.
 - Just-in-time TypeScript transpilation so fast you won't even notice.
 - Generates source maps for accurate stack traces.
 - Does not spawn another process to transpile TypeScript.
@@ -34,11 +35,11 @@
 ts-run ./some-script.ts
 ```
 
-The idea is that you take advantage of your IntelliSense-compatible editor to author your scripts with full type checking on, and `ts-run` will transparently run them without you having to run the TypeScript compliler beforehand.
+The idea is that you take advantage of your IntelliSense-compatible editor to author your scripts with full type checking on, and `ts-run` will transparently run them without you having to run the TypeScript compiler beforehand.
 
 
 ## Installation and usage
-`ts-run` requires a modern (as of january 2024) version of NodeJS:
+`ts-run` requires a modern (as of January 2024) version of NodeJS:
 - Node 18 version 18.19.0 or later
 - Node 20 version 20.6.0 or later
 - Any version >= 21
@@ -77,7 +78,7 @@ and then call it from the `scripts` section in `package.json`:
 {
     "scripts": {
         "get-data": "ts-run ./scripts/download-data.ts",
-        "release": "ts-run ./scripts/prepare-release.ts"
+        "release": "ts-run ./scripts/release.ts"
     }
 }
 ```
@@ -95,13 +96,11 @@ node --import=@septh/ts-run ./scripts/do-something.ts
 
 ## Differences with Node's builtin TypeScript support
 
-Since 22.6.0, NodeJS has [builtin support for running TypeScript scripts](https://nodejs.org/api/typescript.html#modules-typescript) through the `--experimental-strip-types` (now on by default, opt-out) and `--experimental-transform-types` (opt-in) command line flags:
+Since 22.6.0, NodeJS has [builtin support for running TypeScript scripts](https://nodejs.org/api/typescript.html#modules-typescript). At first, the feature had to be opted-in with the `--experimental-strip-types`, but it's been unflagged with 22.18.0 and is now always on.
 
-```sh
-node --experimental-strip-types --experimental-transform-types ./some-script.ts
-```
+However, Node only supports [erasable TypeScript syntax](https://devblogs.microsoft.com/typescript/announcing-typescript-5-8-beta/#the---erasablesyntaxonly-option): il will throw on `enum`s, `namespace`s and other TypeScript niceties (those used to be supported with `--experimental-transform-types` but the feature has been abandoned and [removed in 26.0.0](https://github.com/nodejs/node/pull/61803)).
 
-This works quite well and the transforms are even faster than `ts-run`'s since their are done in WebAssembly through the [Amaro module](https://github.com/nodejs/amaro). However, Amaro does not perform all the work `ts-run` does, especially transforming `import`s to `require` calls in CommonJS scripts.
+Furthermore, Node does not perform all the work `ts-run` does, especially transforming `import` statements to `require` calls in CommonJS scripts.
 
 
 ## TypeScript to JavaScript considerations
@@ -111,13 +110,20 @@ This works quite well and the transforms are even faster than `ts-run`'s since t
 
 `ts-run` handles `import` and `export` declarations as one would expect. In short:
 
-* The `import ... from 'specifier'` syntax is left as is in ES modules and transformed to `const ... = require('specifier')` in CommonJS modules.
-* The `import namespace = require('specifier')` syntax is valid in ES modules only and is transformed to `const require = createRequire(import.meta.url); const namespace = require('specifier')`, with the [createRequire()](https://nodejs.org/api/module.html#modulecreaterequirefilename) call being hoisted if used several times.
-* Dynamics imports are always left untouched, even in CJS modules.
-* Same goes for `import.meta` expressions. Yeah, even in CJS modules.
-* `export`s are transformed to `module.exports` assignments in CommonJS modules.
-* Type-only `import`s and `export`s, whether explicit (with the `type` keyword) or implicit, are silently removed.
-  * Note that `import type { Foo } from './bar.ts'` results in the whole statement being removed, while `import { type Foo } from './bar.ts'` is transformed to `import {} from './bar.ts'`. This is consistent with TypeScript's behavior.
+| Statement | ESM | CJS |
+|-----------|-----|-----|
+| `import ... from 'specifier'` | Unchanged (1) | `const ... = require('specifier')`|
+| `import namespace = require('specifier')` | `const require = createRequire(import.meta.url); const namespace = require('specifier')` (2) | `const namespace = require('specifier')` |
+| `import('specifier')` | Unchanged | Unchanged |
+| `require('specifier')` | Unchanged | Unchanged |
+| `import.meta.XX` | Unchanged     | Unchanged (⚠️) |
+| `export ...` | Unchanged | `module.exports = ...` |
+| `export = ...` | `module.exports = ...` | `module.exports = ...` |
+
+1. Type-only `import`s and `export`s, whether explicit (with the `type` keyword) or implicit, are silently removed.
+    * Note that `import type { Foo } from './bar.ts'` results in the whole statement being removed, while `import { type Foo } from './bar.ts'` is transformed to `import {} from './bar.ts'`. This is consistent with TypeScript's behavior.
+2. The [`createRequire()`](https://nodejs.org/api/module.html#modulecreaterequirefilename) call is being hoisted if used several times.
+
 
 #### Specifiers
 Given the above, you should simply import your `.ts` scripts as you would with plain Javascript:
@@ -139,15 +145,17 @@ Beginning with 1.2.6, `.js` specifiers are also supported:
 import { something } from './a.js'  // works too
 ```
 
-However, using .`ts` specifiers is highly recommended as a mean to ensure a smooth transition with [Node's own `--experimental-strip-types` option](https://nodejs.org/api/typescript.html#type-stripping).
 
 #### TypeScript specificities
-TypeScript's module resolution specificities are not handled; instead, Node's module resolution algorithm is always used. In other words, `ts-run` always acts as if both `moduleResolution` and `module` were set to `NodeNext` and `paths` was empty.
+TypeScript's module resolution specificities are not handled; instead, Node's module resolution algorithm is always used.
+
+In other words, `ts-run` always acts as if both `moduleResolution` and `module` were set to `NodeNext` and `paths` was empty.
 
 ### Sucrase
 `ts-run` uses a customized build of [Sucrase](https://github.com/alangpierce/sucrase) under the hood and therefore exhibits the same potential bugs and misbehaviors as Sucrase.
 
 Of particular attention, the following quote from Sucrase's README:
+
 > Decorators, private fields, throw expressions, generator arrow functions, and do expressions are all unsupported in browsers and Node (as of this writing), and Sucrase doesn't make an attempt to transpile them.
 
 Apart from this, if `ts-run` doesn't seem to work as you'd expect, you should first check if there is a [Sucrase issue](https://github.com/alangpierce/sucrase/issues) open for your problem.
@@ -265,5 +273,5 @@ Either run `ts-run` in the VS Code Javascript Debug Terminal or use the followin
 ```
 
 
-## Licence
+## License
 MIT.
