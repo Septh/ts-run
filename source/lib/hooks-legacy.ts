@@ -9,12 +9,12 @@ import { transform } from './transform.cjs'
 const jsExtRx = /\.([cm])?js$/
 const tsExtRx = /\.([cm])?ts$/
 
+const [ major, minor ] = process.versions.node.split('.').map(Number)
+
 // Determine the default module type.
 // Note: --experimental-default-type was removed in Node 23.4.0
 let defaultModuleType: NodeJS.ModuleType = 'commonjs'
-
-const [ major, minor ] = process.versions.node.split('.').map(Number)
-if (major < 23 || minor < 4) {
+if (major < 23 || (major === 23 && minor < 4)) {
     const argIndex = process.execArgv.findIndex(arg => /^--(?:experimental-)?default-type/.test(arg))
     if (argIndex >= 0) {
         const type = process.execArgv[argIndex].split('=')[1] || process.execArgv[argIndex + 1]
@@ -44,21 +44,18 @@ export const load: LoadHook = async (url, context, nextLoad) => {
     // Determine the format based on the file's extension
     // or the nearest package.json's `type` field.
     const filePath = fileURLToPath(fileUrl)
-    const format = (context.format ?? (
-        ext === '.ts'
-            ? await nearestPackageTypeAsync(filePath, defaultModuleType)
-            : ext === '.mts'
-                ? 'module'
-                : 'commonjs'
-    )).replace(/-typescript$/, '')
+    const format = context.format?.replace(/-typescript$/, '') ?? (
+        ext === '.ts' ? await nearestPackageTypeAsync(filePath, defaultModuleType)
+            : ext === '.mts' ? 'module'
+            : 'commonjs'
+    )
 
     if (format !== 'module' && format !== 'commonjs')
         return nextLoad(url, context)
 
     // Load and transform the file.
-    const source = await readFile(filePath).then(
-        buffer => transform(buffer.toString(), format, path.basename(filePath))
-    )
+    const buffer = await readFile(filePath)
+    const source = transform(buffer.toString(), format, path.basename(filePath))
 
     return {
         source,
@@ -80,13 +77,13 @@ export function installCjsHooks() {
         }
     }
 
-    module._extensions['.ts']  = (m, filename) => transpile(m, nearestPackageTypeSync(filename, defaultModuleType), filename)
-    module._extensions['.cts'] = (m, filename) => transpile(m, 'commonjs', filename)
-    module._extensions['.mts'] = (m, filename) => transpile(m, 'module', filename)
+    module._extensions['.ts']  = (mod, filename) => compile(mod, nearestPackageTypeSync(filename, defaultModuleType), filename)
+    module._extensions['.cts'] = (mod, filename) => compile(mod, 'commonjs', filename)
+    module._extensions['.mts'] = (mod, filename) => compile(mod, 'module', filename)
 
-    function transpile(m: module, format: NodeJS.ModuleType, filePath: string) {
-        const source = readFileSync(filePath).toString()
-        const code = transform(source, format, path.basename(filePath))
-        return m._compile(code, filePath)
+    function compile(mod: module, format: NodeJS.ModuleType, filePath: string) {
+        const buffer = readFileSync(filePath)
+        const source = transform(buffer.toString(), format, path.basename(filePath))
+        return mod._compile(source, filePath)
     }
 }

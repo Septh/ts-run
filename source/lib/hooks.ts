@@ -1,5 +1,5 @@
 import path from 'node:path'
-import module from 'node:module'
+import type { RegisterHooksOptions } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { readFileSync, statSync } from 'node:fs'
 import { nearestPackageTypeSync } from './nearest-package-type.js'
@@ -8,20 +8,20 @@ import { transform } from './transform.cjs'
 const jsExtRx = /\.([cm])?js$/
 const tsExtRx = /\.([cm])?ts$/
 
-export const hooks: module.RegisterHooksOptions = {
+export const hooks: RegisterHooksOptions = {
     resolve(specifier, context, nextResolve) {
 
         if (context.parentURL && new URL(specifier, context.parentURL).protocol === 'file:') {
             for (const candidate of candidates(specifier, context.conditions)) {
                 const resolved = new URL(candidate, context.parentURL)
                 try {
-                    const stat = statSync(fileURLToPath(resolved))
-                    if (stat.isFile())
+                    if (statSync(fileURLToPath(resolved)).isFile())
                         return { url: resolved.href, shortCircuit: true }
                 }
-                catch (e: any) {
-                    if (e.code != 'ENOENT')
-                        throw e
+                catch (err) {
+                    const { code } = err as NodeJS.ErrnoException
+                    if (code != 'ENOENT')
+                        throw err
                 }
             }
         }
@@ -31,18 +31,17 @@ export const hooks: module.RegisterHooksOptions = {
 
         function *candidates(base: string, conditions: string[]) {
 
-            if (jsExtRx.test(base)) {
-                // For *.[cm]js specifiers, always try *.[cm]ts first.
+            if (tsExtRx.test(base)) {
+                // For TypeScript specifiers, only try as-is.
+                yield base
+            }
+            else if (jsExtRx.test(base)) {
+                // For JavaScript specifiers, try the TS counterpart first, then as-is.
                 yield base.replace(jsExtRx, '.$1ts')
                 yield base
             }
-            else if (tsExtRx.test(base)) {
-                // For *.[cm]ts specifiers, always try as-is first, then *.[cm]js.
-                yield base
-                yield base.replace(tsExtRx, '.$1js')
-            }
             else if (path.extname(base) === '' && conditions.includes('require')) {
-                // Otherwise, mimic standard require() for extension-less specifier by trying both *.[ts]s and */index.[tj]s
+                // For extension-less specifiers, mimic standard require() by trying both *.[tj]s and */index.[tj]s
                 // Note that like require(), *.[cm][tj]s is not tried, only *.[tj]s
                 yield base + '.ts'
                 yield base + '.js'
@@ -64,13 +63,11 @@ export const hooks: module.RegisterHooksOptions = {
         // Determine the format based on the passed format, the file's extension
         // or the nearest package.json's `type` field.
         const filePath = fileURLToPath(fileUrl)
-        const format = (context.format ?? (
-            ext === '.ts'
-                ? nearestPackageTypeSync(filePath, 'commonjs')
-                : ext === '.mts'
-                    ? 'module'
-                    : 'commonjs'
-        )).replace(/-typescript$/, '')
+        const format = context.format?.replace(/-typescript$/, '') ?? (
+            ext === '.ts' ? nearestPackageTypeSync(filePath, 'commonjs')
+                : ext === '.mts' ? 'module'
+                : 'commonjs'
+        )
 
         if (format !== 'module' && format !== 'commonjs')
             return nextLoad(url, context)

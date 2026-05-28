@@ -16,9 +16,7 @@ export function nearestPackageTypeSync(file: string, defaultType: NodeJS.ModuleT
             try {
                 const buffer = readFileSync(pkgFile)
                 const { type } = JSON.parse(buffer.toString()) as PackageJson
-                cached = type === 'module' || type ==='commonjs'
-                    ? type
-                    : defaultType
+                cached = (type === 'module' || type ==='commonjs') ? type : defaultType
             }
             catch (err) {
                 const { code } = err as NodeJS.ErrnoException
@@ -47,19 +45,18 @@ export async function nearestPackageTypeAsync(file: string, defaultModuleType: N
         const pkgFile = path.join(current, 'package.json')
         let cached = pkgTypeCache.get(pkgFile)
         if (cached === undefined) {
-            cached = await readFile(pkgFile)
-                .then(data => {
+            cached = await readFile(pkgFile).then(
+                data => {
                     const { type } = JSON.parse(data.toString()) as PackageJson
-                    return type === 'module' || type === 'commonjs'
-                        ? type
-                        : defaultModuleType
-                })
-                .catch(err => {
+                    return (type === 'module' || type === 'commonjs') ? type : defaultModuleType
+                },
+                err => {
                     const { code } = err as NodeJS.ErrnoException
                     if (code !== 'ENOENT')
                         console.error(err)
                     return null
-                })
+                }
+            )
             pkgTypeCache.set(pkgFile, cached)
         }
 
