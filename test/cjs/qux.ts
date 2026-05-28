@@ -1,5 +1,1 @@
-/* module.exports = {
-    qux: 'qux'
-}
- */
-export const qux = 'qux'
+export const qux = 'qux.ts'
