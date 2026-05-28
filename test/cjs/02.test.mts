@@ -47,6 +47,7 @@ describe("A .mts script inside a { type: 'commonjs' } directory transpiled to ES
         })
 
         test("with a .ts specifier: import('./bar.ts') fails", async () => {
+            // @ts-ignore
             await import('./bar.ts').then(() => assert.fail(), (e) => assert(e.code === 'ERR_MODULE_NOT_FOUND'))
         })
 

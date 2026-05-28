@@ -1,5 +1,5 @@
 {
-  "typescript.tsdk": "node_modules/typescript/lib",
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
   "debug.javascript.terminalOptions": {
     "skipFiles": [
       "<node_internals>/**",
@@ -9,6 +9,5 @@
   "cSpell.words": [
     "misbehaviors",
     "sourcemaps"
-  ],
-  "js/ts.tsdk.path": "node_modules/typescript/lib"
+  ]
 }
