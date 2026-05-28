@@ -6,34 +6,33 @@
   "exclude": [ "source/lib/fix-sucrase" ],
   "compilerOptions": {
 
+    // Environment
+    "module": "node20",
+    "target": "ESNext",
+    "lib": [ "ESNext" ],
+    "types": [ "node" ],
+
     // Input
     "resolveJsonModule": true,
     "checkJs": true,
 
     // Output
-    "target": "ESNext",
+    "rewriteRelativeImportExtensions": true,
     "noEmit": true,
-
-    // Module
-    "module": "Node20",
-    // "esModuleInterop": true,
-    // "allowSyntheticDefaultImports": true,
-
-    // Libs
-    "lib": [ "ESNext" ],
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
 
     // Type checking
     "strict": true,
-    "exactOptionalPropertyTypes": false,
-    "noImplicitOverride": true,
-    "noImplicitReturns": true,
-    "noPropertyAccessFromIndexSignature": false,
-    "noUncheckedIndexedAccess": false,
+    "skipLibCheck": false,
+    "skipDefaultLibCheck": true,
+    // "exactOptionalPropertyTypes": true,
+    // "noUncheckedIndexedAccess": true,
+    // "noPropertyAccessFromIndexSignature": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": false,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUncheckedSideEffectImports": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true
   }
