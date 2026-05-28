@@ -18,50 +18,68 @@ describe("A .ts script inside a { type: 'commonjs' } directory is transpiled to 
         assert(typeof require.resolve === 'function')
     })
 
-    describe('require() .ts files', () => {
+    describe("require() .ts files", () => {
 
-        test("with a .ts specifier", () => {
-            const foo = require('./foo.ts')
-            assert.strictEqual(foo, 'foo')
+        test("using a .ts specifier: require('./foo.ts') loads ./foo.ts", () => {
+            assert.strictEqual(require('./foo.ts'), 'foo.ts')
         })
 
-        test("with a .js specifier", () => {
-            const foo = require('./foo.js')
-            assert.strictEqual(foo, 'foo')
+        test("using a .js specifier: require('./foo.js') loads ./foo.ts", () => {
+            assert.strictEqual(require('./foo.js'), 'foo.ts')
         })
 
-        test("with an extension-less specifier", () => {
-            const foo = require('./foo')
-            assert.strictEqual(foo, 'foo')
+        test("using an extension-less specifier: require('./foo') loads ./foo.ts", () => {
+            assert.strictEqual(require('./foo'), 'foo.ts')
         })
     })
 
     describe('require() .js files', () => {
 
-        test("with a .js specifier", () => {
-            const foo = require('./foo_js.js')
-            assert.strictEqual(foo, 'foo_js')
+        test("with a .js specifier: require('./bar.js') loads ./bar.js", () => {
+            assert.strictEqual(require('./bar.js'), 'bar.js')
         })
 
-        test("with a .ts specifier", () => {
-            const foo = require('./foo_js.ts')
-            assert.strictEqual(foo, 'foo_js')
+        test("with a .ts specifier: require('./bar.ts') fails", () => {
+            assert.throws(() => {
+                require('./bar.ts')
+            })
         })
 
-        test("with an extension-less specifier", () => {
-            const foo = require('./foo_js')
-            assert.strictEqual(foo, 'foo_js')
+        test("with an extension-less specifier: require('./bar') loads ./bar.js", () => {
+            const foo = require('./bar')
+            assert.strictEqual(foo, 'bar.js')
         })
     })
 
-    test("directory imports are supported when using require()", () => {
-        const baz = require('./baz')
-        assert.strictEqual(baz, 'baz')
+    describe("require() dual .js/.ts files prioritizes the .ts file", () => {
+
+        test("using a .ts specifier: require('./foobar.ts') ignores ./foobar.js and loads ./foobar.ts", () => {
+            assert.strictEqual(require('./foobar.ts'), 'foobar.ts')
+        })
+
+        test("using a .js specifier: require('./foobar.js') ignores ./foobar.js and loads ./foobar.ts", () => {
+            assert.strictEqual(require('./foobar.js'), 'foobar.ts')
+        })
+
+        test("using an extension-less specifier: require('./foobar') ignores ./foobar.js and loads ./foobar.ts", () => {
+            assert.strictEqual(require('./foobar'), 'foobar.ts')
+        })
+    })
+
+    describe('directory import with require()', () => {
+
+        test("with dir/index.js", () => {
+            assert.strictEqual(require('./dir_js'), 'dir_js/index.js')
+        })
+
+        test("with dir/index.ts", () => {
+            assert.strictEqual(require('./dir_ts'), 'dir_ts/index.ts')
+        })
     })
 
     test("import statements are turned into require calls", () => {
         const { qux } = globallyImportedQux as any
-        assert.strictEqual(qux, 'qux')
+        assert.strictEqual(qux, 'qux.ts')
     })
 
     test("export statements are turned into module.exports assignments", () => {
