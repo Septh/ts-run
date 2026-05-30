@@ -11,7 +11,7 @@
 > The minimalist TypeScript script runner for NodeJS.
 
 ### Features
-- **Runs scripts Node's builtin TypeScript parser won't**.
+- **Runs scripts Node's built-in TypeScript parser won't**.
 - Just-in-time TypeScript transpilation so fast you won't even notice.
 - Generates source maps for accurate stack traces.
 - Does not spawn another process to transpile TypeScript.
@@ -94,13 +94,13 @@ node --import=@septh/ts-run ./scripts/do-something.ts
 ```
 
 
-## Differences with Node's builtin TypeScript support
+## Differences with Node's built-in TypeScript support
 
 Since 22.6.0, NodeJS has [builtin support for running TypeScript scripts](https://nodejs.org/api/typescript.html#modules-typescript). At first, the feature had to be opted-in with the `--experimental-strip-types`, but it's been unflagged with 22.18.0 and is now always on.
 
 However, Node only supports [erasable TypeScript syntax](https://devblogs.microsoft.com/typescript/announcing-typescript-5-8-beta/#the---erasablesyntaxonly-option): il will throw on `enum`s, `namespace`s and other TypeScript niceties (those used to be supported with `--experimental-transform-types` but the feature has been abandoned and [removed in 26.0.0](https://github.com/nodejs/node/pull/61803)).
 
-Furthermore, Node does not perform all the work `ts-run` does, especially transforming `import` statements to `require` calls in CommonJS scripts.
+So, to sum up: Node simply does not perform all the work `ts-run` does, especially transforming `import` statements to `require` calls in CommonJS scripts.
 
 
 ## TypeScript to JavaScript considerations
@@ -113,16 +113,18 @@ Furthermore, Node does not perform all the work `ts-run` does, especially transf
 | Statement | ESM | CJS |
 |-----------|-----|-----|
 | `import ... from 'specifier'` | Unchanged (1) | `const ... = require('specifier')`|
-| `import namespace = require('specifier')` | `const require = createRequire(import.meta.url); const namespace = require('specifier')` (2) | `const namespace = require('specifier')` |
+| `import namespace = require('specifier')` | `const _require = createRequire(import.meta.url); const namespace = _require('specifier')` (2) | `const namespace = require('specifier')` |
 | `import('specifier')` | Unchanged | Unchanged |
 | `require('specifier')` | Unchanged | Unchanged |
 | `import.meta.XX` | Unchanged     | Unchanged (⚠️) |
-| `export ...` | Unchanged | `module.exports = ...` |
-| `export = ...` | `module.exports = ...` | `module.exports = ...` |
+| `export { x }` | Unchanged | `module.exports.x = x` |
+| `export const x = ...` | Unchanged | `module.exports.x = ...` |
+| `export = ...` | `module.exports = ...` (⚠️) | `module.exports = ...` |
 
 1. Type-only `import`s and `export`s, whether explicit (with the `type` keyword) or implicit, are silently removed.
     * Note that `import type { Foo } from './bar.ts'` results in the whole statement being removed, while `import { type Foo } from './bar.ts'` is transformed to `import {} from './bar.ts'`. This is consistent with TypeScript's behavior.
-2. The [`createRequire()`](https://nodejs.org/api/module.html#modulecreaterequirefilename) call is being hoisted if used several times.
+2. The [`createRequire()`](https://nodejs.org/api/module.html#modulecreaterequirefilename) call is hoisted if used several times.
+3. ⚠️ This will crash at runtime.
 
 
 #### Specifiers

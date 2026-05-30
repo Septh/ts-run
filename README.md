@@ -20,7 +20,7 @@ See [the repo on Github](https://github.com/Septh/ts-run#readme) for full docume
 
 
 ### Features
-- **Runs scripts Node's builtin TypeScript parser won't**.
+- **Runs scripts Node's built-in TypeScript parser won't**.
 - Just-in-time TypeScript transpilation so fast you won't even notice.
 - Generates source maps for accurate stack traces.
 - Does not spawn another process to transpile TypeScript.
