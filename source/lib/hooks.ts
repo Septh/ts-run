@@ -2,7 +2,7 @@ import path from 'node:path'
 import type { RegisterHooksOptions } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { readFileSync, statSync } from 'node:fs'
-import { nearestPackageTypeSync } from './nearest-package-type.js'
+import { nearestPackageType } from './nearest-package-type.js'
 import { transform } from './transform.cjs'
 
 const jsExtRx = /\.([cm])?js$/
@@ -64,7 +64,7 @@ export const hooks: RegisterHooksOptions = {
         // or the nearest package.json's `type` field.
         const filePath = fileURLToPath(fileUrl)
         const format = context.format?.replace(/-typescript$/, '') ?? (
-            ext === '.ts' ? nearestPackageTypeSync(filePath, 'commonjs')
+            ext === '.ts' ? nearestPackageType(filePath, 'commonjs')
                 : ext === '.mts' ? 'module'
                 : 'commonjs'
         )

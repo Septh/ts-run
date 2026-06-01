@@ -3,7 +3,7 @@ import module, { type ResolveHook, type LoadHook } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
-import { nearestPackageTypeAsync, nearestPackageTypeSync } from './nearest-package-type.js'
+import { nearestPackageType } from './nearest-package-type.js'
 import { transform } from './transform.cjs'
 
 const jsExtRx = /\.([cm])?js$/
@@ -45,7 +45,7 @@ export const load: LoadHook = async (url, context, nextLoad) => {
     // or the nearest package.json's `type` field.
     const filePath = fileURLToPath(fileUrl)
     const format = context.format?.replace(/-typescript$/, '') ?? (
-        ext === '.ts' ? await nearestPackageTypeAsync(filePath, defaultModuleType)
+        ext === '.ts' ? nearestPackageType(filePath, defaultModuleType)
             : ext === '.mts' ? 'module'
             : 'commonjs'
     )
@@ -77,7 +77,7 @@ export function installCjsHooks() {
         }
     }
 
-    module._extensions['.ts']  = (mod, filename) => compile(mod, nearestPackageTypeSync(filename, defaultModuleType), filename)
+    module._extensions['.ts']  = (mod, filename) => compile(mod, nearestPackageType(filename, defaultModuleType), filename)
     module._extensions['.cts'] = (mod, filename) => compile(mod, 'commonjs', filename)
     module._extensions['.mts'] = (mod, filename) => compile(mod, 'module', filename)
 

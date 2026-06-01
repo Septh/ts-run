@@ -39,14 +39,9 @@ export default defineConfig([
         external: /\/register\.[cm]?[jt]s$/
     },
 
-    // lib/register.js, lib/hooks.js, lib/hooks-legacy.js, lib/nearest-package-type.js
+    // lib/register.js
     {
-        input: [
-            'source/lib/register.ts',
-            'source/lib/hooks.ts',
-            'source/lib/hooks-legacy.ts',
-            'source/lib/nearest-package-type.ts'
-        ],
+        input: 'source/lib/register.ts',
         output: {
             dir: 'lib',
             format: 'esm',
@@ -68,7 +63,41 @@ export default defineConfig([
                 }
             }
         ],
-        external: [ /\/hooks.*\.[cm]?[jt]s$/, /\/nearest.*\.[cm]?[jt]s$/, /\/transform\.[cm]?[jt]s$/ ]
+        external: /\/hooks.*\.[cm]?[jt]s$/
+    },
+
+    // lib/hooks.js
+    {
+        input: 'source/lib/hooks.ts',
+        output: {
+            dir: 'lib',
+            format: 'esm',
+            sourcemap: 'hidden',
+            sourcemapExcludeSources: true
+        },
+        plugins: [
+            nodeExternals(),
+            sucrase(),
+            codeRaker(),
+        ],
+        external: /\/transform\.[cm]?[jt]s$/
+    },
+
+    // lib/hooks-legacy.js
+    {
+        input: 'source/lib/hooks-legacy.ts',
+        output: {
+            dir: 'lib',
+            format: 'esm',
+            sourcemap: 'hidden',
+            sourcemapExcludeSources: true
+        },
+        plugins: [
+            nodeExternals(),
+            sucrase(),
+            codeRaker(),
+        ],
+        external: /\/transform\.[cm]?[jt]s$/
     },
 
     // lib/transform.cjs
