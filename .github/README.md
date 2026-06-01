@@ -102,6 +102,9 @@ However, Node only supports [erasable TypeScript syntax](https://devblogs.micros
 
 So, to sum up: Node simply does not perform all the work `ts-run` does, especially transforming `import` statements to `require` calls in CommonJS scripts.
 
+> [!WARNING]
+> Node's [`import.meta.main`](https://nodejs.org/api/esm.html#importmetamain) feature will always report `false` for scripts run through `ts-run`'s executable. If you need to rely on `import.meta.main`, use the `--import` flag instead.
+
 
 ## TypeScript to JavaScript considerations
 `ts-run`'s sole role is to transpile TypeScript code to JavaScript code, no more, no less. It does not try to optimize or minify your code and it does not downlevel nor polyfill JavaScript.
