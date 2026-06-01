@@ -9,14 +9,14 @@ if (!(major >= 21 || (major === 20 && minor >= 6) || (major === 18 && minor >= 1
 // Enable source map support.
 process.setSourceMapsEnabled(true)
 
-if (major >= 25) {
-    // Node >= 25: register the sync hooks for both esm and cjs.
+// Node >= 24.15, 25: register the sync hooks for both esm and cjs.
+// https://github.com/nodejs/node/issues/62692#issuecomment-4229736916
+if (major >= 25 || (major === 24 && minor >= 15)) {
     const { hooks } = await import('./hooks.js')
     module.registerHooks(hooks)
 
-    // Also install the cjs hooks if Node < 26.2
-    // (the cjs loader was buggy before 26.2, and it looks like
-    // https://github.com/nodejs/node/pull/62920 fixed it).
+    // Also install the legacy cjs hooks if Node < 26.2
+    // (https://github.com/nodejs/node/pull/62920 landed in 26.2)
     if (major < 26 || (major === 26 && minor < 2)) {
         const { installCjsHooks } = await import('./hooks-legacy.js')
         installCjsHooks()
