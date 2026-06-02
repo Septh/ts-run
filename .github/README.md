@@ -13,10 +13,10 @@
 ### Features
 - **Runs scripts Node's built-in TypeScript parser won't**.
 - Just-in-time TypeScript transpilation so fast you won't even notice.
-- Generates source maps for accurate stack traces.
+- Generates source maps for accurate stack traces and easy debugging.
 - Does not spawn another process to transpile TypeScript.
 - Does not spawn another Node process to run your script.
-- Strictly follows modern Node semantics for ESM and CommonJS modules.
+- Strictly follows modern Node semantics for both ESM and CommonJS modules.
 - Zero config: no config file, no command line arguments, no environment variables, no nothing.
 - Does not even need a `tsconfig.json`.
 - Works with test runners.
@@ -29,7 +29,7 @@
 
 
 ## About
-`ts-run` is a CLI command that you can use to run TypeScript scripts in NodeJS as if they were written in plain JavaScript. It is a simple as:
+`ts-run` is a CLI command that you can use to run TypeScript scripts in NodeJS as if they were written in plain JavaScript. It is as simple as:
 
 ```sh
 ts-run ./some-script.ts
@@ -96,14 +96,14 @@ node --import=@septh/ts-run ./scripts/do-something.ts
 
 ## Differences with Node's built-in TypeScript support
 
-Since 22.6.0, NodeJS has [builtin support for running TypeScript scripts](https://nodejs.org/api/typescript.html#modules-typescript). At first, the feature had to be opted-in with the `--experimental-strip-types`, but it's been unflagged with 22.18.0 and is now always on.
+Since 22.6.0, NodeJS has [built-in support for running TypeScript scripts](https://nodejs.org/api/typescript.html#modules-typescript). At first, the feature had to be opted-in with the `--experimental-strip-types`, but it's been unflagged with 22.18.0 and is now always on.
 
-However, Node only supports [erasable TypeScript syntax](https://devblogs.microsoft.com/typescript/announcing-typescript-5-8-beta/#the---erasablesyntaxonly-option): il will throw on `enum`s, `namespace`s and other TypeScript niceties (those used to be supported with `--experimental-transform-types` but the feature has been abandoned and [removed in 26.0.0](https://github.com/nodejs/node/pull/61803)).
+However, Node only supports [erasable TypeScript syntax](https://devblogs.microsoft.com/typescript/announcing-typescript-5-8-beta/#the---erasablesyntaxonly-option): it will throw on `enum`s, `namespace`s and a few other TypeScript niceties (those used to be supported with `--experimental-transform-types` but the feature has been abandoned and [removed in 26.0.0](https://github.com/nodejs/node/pull/61803)).
 
-So, to sum up: Node simply does not perform all the work `ts-run` does, especially transforming `import` statements to `require` calls in CommonJS scripts.
+So, to sum up: Node simply does not perform all the work `ts-run` does, especially transforming `enum`s and `const enum`s, parameter properties in classes, `import` statements, etc.
 
-> [!WARNING]
-> Node's [`import.meta.main`](https://nodejs.org/api/esm.html#importmetamain) feature will always report `false` for scripts run through `ts-run`'s executable. If you need to rely on `import.meta.main`, use the `--import` flag instead.
+> [!IMPORTANT]
+> Node's [`import.meta.main`](https://nodejs.org/api/esm.html#importmetamain) feature will always report `false` for scripts run through the `ts-run` executable. If you need to rely on `import.meta.main`, use the `--import` flag instead as shown above.
 
 
 ## TypeScript to JavaScript considerations
@@ -111,7 +111,12 @@ So, to sum up: Node simply does not perform all the work `ts-run` does, especial
 
 ### imports and exports
 
-`ts-run` handles `import` and `export` declarations as one would expect. In short:
+`ts-run` handles `import` and `export` declarations as one would expect. The table below has all the details but it is important to note that these transforms are not 100% sound; there are a few edge cases where they could cause very subtle bugs because of the differences between esm and cjs module loading in Node.
+
+In the vast majority of cases, though, they'll run just fine.
+
+<details><summary>view table</summary>
+
 
 | Statement | ESM | CJS |
 |-----------|-----|-----|
@@ -121,17 +126,18 @@ So, to sum up: Node simply does not perform all the work `ts-run` does, especial
 | `require('specifier')` | Unchanged | Unchanged |
 | `import.meta.XX` | Unchanged     | Unchanged (⚠️) |
 | `export { x }` | Unchanged | `module.exports.x = x` |
-| `export const x = ...` | Unchanged | `module.exports.x = ...` |
+| `export const x = ...`<br>`export let x = ...`<br>`export var x = ...` | Unchanged | `module.exports.x = ...` |
 | `export = ...` | `module.exports = ...` (⚠️) | `module.exports = ...` |
 
 1. Type-only `import`s and `export`s, whether explicit (with the `type` keyword) or implicit, are silently removed.
     * Note that `import type { Foo } from './bar.ts'` results in the whole statement being removed, while `import { type Foo } from './bar.ts'` is transformed to `import {} from './bar.ts'`. This is consistent with TypeScript's behavior.
 2. The [`createRequire()`](https://nodejs.org/api/module.html#modulecreaterequirefilename) call is hoisted if used several times.
-3. ⚠️ This will crash at runtime.
+3. ⚠️ This will likely crash at runtime.
 
+</details>
 
 #### Specifiers
-Given the above, you should simply import your `.ts` scripts as you would with plain Javascript:
+You should simply use `.ts` specifiers everywhere:
 
 ```ts
 // a.ts
@@ -147,14 +153,23 @@ Beginning with 1.2.6, `.js` specifiers are also supported:
 
 ```ts
 // b.ts
-import { something } from './a.js'  // works too
+import { something } from './a.js'  // will import './a.ts' if it exists,
+                                    // './a.js' otherwise.
+```
+
+For scripts running in a CommonJS context, extension-less specifiers can also be used:
+
+```ts
+// b.cts
+import { something } from './a'   // will try './a.ts' first, then './a.js',
+                                  // then './a/index.ts', then './a/index.js'
 ```
 
 
 #### TypeScript specificities
 TypeScript's module resolution specificities are not handled; instead, Node's module resolution algorithm is always used.
 
-In other words, `ts-run` always acts as if both `moduleResolution` and `module` were set to `NodeNext` and `paths` was empty.
+In other words, `ts-run` always acts as if `tsconfig.json` had both `moduleResolution` and `module` set to `NodeNext` and `paths` was empty.
 
 ### Sucrase
 `ts-run` uses a customized build of [Sucrase](https://github.com/alangpierce/sucrase) under the hood and therefore exhibits the same potential bugs and misbehaviors as Sucrase.
@@ -169,26 +184,26 @@ Apart from this, if `ts-run` doesn't seem to work as you'd expect, you should fi
 ## Authoring your scripts
 As stated earlier, `ts-run` does not need (and in fact, does not even look for) a `tsconfig.json` file.
 
-The same is not true however for the TypeScript Language Server that your IntelliSense-aware editor relies on. You'll find the following `tsconfig.json` useful to get the right warnings and errors reports in your IDE:
+The same is not true, however, for the TypeScript Language Server that your IntelliSense-aware editor relies on. You'll find the following `tsconfig.json` useful to get the right warnings and errors reports in your IDE:
 
 ```jsonc
 {
   "compilerOptions": {
 
     // This tells TypeScript that this directory contains Node scripts.
+    // "module": "bundler" would be fine, too.
     "module": "NodeNext",
 
-    // Rewrite TypeScript file extensions in relative import paths
-    // to their JavaScript equivalent in output files.
-    "rewriteRelativeImportExtensions": true,
+    // You want to use '.ts' import specifiers.
+    // Note that `noEmit` is mandatory with `allowImportingTsExtensions`.
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
 
-    // `rewriteRelativeImportExtensions` is a TS 5.7+ option.
-    // With earlier versions of TypeScript, use the following instead:
-    // "allowImportingTsExtensions": true,
-    // "noEmit": true,
+    // If you plan to compile the script with tsc at some point, comment out
+    // the above two lines and either use '.js' imports or add:
+    // "rewriteRelativeImportExtensions": true,
 
-    // Scripts are transpiled in isolation; this imposes a few restrictions
-    // on some TypeScript features like const enums or namespaces.
+    // 'ts-run' compiles scripts in isolation.
     // (see https://www.typescriptlang.org/tsconfig#isolatedModules)
     "isolatedModules": true,
 
@@ -198,8 +213,6 @@ The same is not true however for the TypeScript Language Server that your Intell
   }
 }
 ```
-
-For reference, you can find such a `tsconfig.json` file in the [test](./test/tsconfig.json) directory of this repository.
 
 
 ## Using with a test runner
@@ -216,7 +229,21 @@ This very repo is using Node as its test runner of choice. Here's what your `scr
 
 > Note: to pass command line options to Node itself, you need to use the `--import` syntax as shown above.
 
-### With ava
+### With ava >= 8.0
+Add the following entry to your `package.json`:
+
+```jsonc
+  "ava": {
+    "extensions": [ "ts", "mts", "cts" ],
+    "nodeArguments": [
+      "--import=@septh/ts-run"
+    ]
+  }
+```
+
+Here's a real-life example: https://github.com/Septh/rollup-plugin-node-externals
+
+### With ava < 8.0
 Add the following entry to your `package.json`:
 
 ```jsonc
@@ -232,23 +259,22 @@ Add the following entry to your `package.json`:
   }
 ```
 
-Here's a real-life example: https://github.com/Septh/rollup-plugin-node-externals
 
 ### With other test-runners
-Any test runner that provides a mean to specify Node arguments (just like ava above) should work happily with `ts-run`.
+Any test runner that provides a means to specify Node arguments (just like ava above) should work happily with `ts-run`.
 
 In the worst case, you can always use the `NODE_OPTIONS` environment variable:
+
 ```sh
 NODE_OPTIONS="--import=@septh/ts-run" my-test-runner
 ```
 
 >[!TIP]
->
 > Please share your experience with other test runners in [the Discussions tab](https://github.com/Septh/ts-run/discussions) and I'll add the relevant info here.
 
 
 ## Debugging scripts with VS Code
-`ts-run` generates accurate sourcemaps, making debugging scripts a breeze. You can set breakpoints, inspect variables, etc.
+`ts-run` generates sourcemaps where appropriate, making debugging scripts a breeze. You can set breakpoints, inspect variables, etc., directly in the `.ts` source file.
 
 Either run `ts-run` in the VS Code Javascript Debug Terminal or use the following `launch.json` configuration (replace `<path/to/your/script.ts>` with the actual path to your script):
 
