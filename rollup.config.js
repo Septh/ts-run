@@ -4,8 +4,8 @@ import { defineConfig } from 'rollup'
 import { nodeExternals } from 'rollup-plugin-node-externals'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonJS_ from '@rollup/plugin-commonjs'
-import { sucrase } from 'rollup-plugin-fast-typescript'
 import terser_ from '@rollup/plugin-terser'
+import { sucrase } from 'rollup-plugin-fast-typescript'
 import { codeRaker } from 'rollup-plugin-code-raker'
 
 /**
@@ -34,14 +34,17 @@ export default defineConfig([
         plugins: [
             nodeExternals(),
             sucrase(),
-            codeRaker({ console: false })
+            codeRaker({ preset: 'application' })
         ],
         external: /\/register\.[cm]?[jt]s$/
     },
 
-    // lib/register.js
+    // lib/register.js, lib/hooks.js
     {
-        input: 'source/lib/register.ts',
+        input: [
+            './source/lib/register.ts',
+            './source/lib/hooks.ts'
+        ],
         output: {
             dir: 'lib',
             format: 'esm',
@@ -51,7 +54,7 @@ export default defineConfig([
         plugins: [
             nodeExternals(),
             sucrase(),
-            codeRaker(),
+            codeRaker({ preset: 'application' }),
             {
                 name: 'emit-dts',
                 async generateBundle() {
@@ -63,41 +66,7 @@ export default defineConfig([
                 }
             }
         ],
-        external: /\/hooks.*\.[cm]?[jt]s$/
-    },
-
-    // lib/hooks.js
-    {
-        input: 'source/lib/hooks.ts',
-        output: {
-            dir: 'lib',
-            format: 'esm',
-            sourcemap: 'hidden',
-            sourcemapExcludeSources: true
-        },
-        plugins: [
-            nodeExternals(),
-            sucrase(),
-            codeRaker(),
-        ],
-        external: /\/transform\.[cm]?[jt]s$/
-    },
-
-    // lib/hooks-legacy.js
-    {
-        input: 'source/lib/hooks-legacy.ts',
-        output: {
-            dir: 'lib',
-            format: 'esm',
-            sourcemap: 'hidden',
-            sourcemapExcludeSources: true
-        },
-        plugins: [
-            nodeExternals(),
-            sucrase(),
-            codeRaker(),
-        ],
-        external: /\/transform\.[cm]?[jt]s$/
+        external: [ /\/hooks.*\.[cm]?[jt]s$/, /\/transform\.[cm]?[jt]s$/ ]
     },
 
     // lib/transform.cjs
