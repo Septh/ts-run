@@ -1,5 +1,4 @@
 import module from 'node:module'
-import { installCjsHooks } from './cjs-hooks.js'
 
 const [ major, minor, patch ] = process.versions.node.split('.').map(Number)
 if (!(major >= 21 || (major === 20 && minor >= 6) || (major === 18 && minor >= 19))) {
@@ -10,24 +9,22 @@ if (!(major >= 21 || (major === 20 && minor >= 6) || (major === 18 && minor >= 1
 // Enable source map support.
 process.setSourceMapsEnabled(true)
 
-// Determine the default module type.
-let defaultModuleType: NodeJS.ModuleType = 'commonjs'
-const argIndex = process.execArgv.findIndex(arg => /^--(?:experimental-)?default-type/.test(arg))
-if (argIndex >= 0) {
-    const type = process.execArgv[argIndex].split('=')[1] || process.execArgv[argIndex + 1]
-    if (type === 'module' || type === 'commonjs')
-        defaultModuleType = type
-}
+// Node >= 24.15, 25: register the sync hooks for both esm and cjs.
+// https://github.com/nodejs/node/issues/62692#issuecomment-4229736916
+if (major >= 25 || (major === 24 && minor >= 15)) {
+    const { hooks } = await import('./hooks.js')
+    module.registerHooks(hooks)
 
-// Register the esm hooks -- those are run in a worker thread.
-const self = import.meta.url
-module.register<HookData>('./esm-hooks.js', {
-    parentURL: self,
-    data: {
-        self,
-        defaultModuleType
+    // Also install the legacy cjs hooks if Node < 26.2
+    // (https://github.com/nodejs/node/pull/62920 landed in 26.2)
+    if (major < 26 || (major === 26 && minor < 2)) {
+        const { installCjsHooks } = await import('./hooks-legacy.js')
+        installCjsHooks()
     }
-})
+}
+else {
+    module.register('./hooks-legacy.js', import.meta.url)
 
-// Install the cjs hooks -- those are run synchronously in the main thread.
-installCjsHooks(defaultModuleType)
+    const { installCjsHooks } = await import('./hooks-legacy.js')
+    installCjsHooks()
+}

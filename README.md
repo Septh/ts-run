@@ -20,11 +20,12 @@ See [the repo on Github](https://github.com/Septh/ts-run#readme) for full docume
 
 
 ### Features
+- **Runs scripts Node's built-in TypeScript parser won't**.
 - Just-in-time TypeScript transpilation so fast you won't even notice.
-- Generates source maps for accurate stack traces.
+- Generates source maps for accurate stack traces and easy debugging.
 - Does not spawn another process to transpile TypeScript.
 - Does not spawn another Node process to run your script.
-- Strictly follows modern Node semantics for ESM and CommonJS modules.
+- Strictly follows modern Node semantics for both ESM and CommonJS modules.
 - Zero config: no config file, no command line arguments, no environment variables, no nothing.
 - Does not even need a `tsconfig.json`.
 - Works with test runners.
@@ -36,5 +37,5 @@ See [the repo on Github](https://github.com/Septh/ts-run#readme) for full docume
 - No REPL support.
 
 
-### Licence
+### License
 MIT.

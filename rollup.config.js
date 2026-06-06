@@ -36,15 +36,12 @@ export default defineConfig([
             sucrase(),
             codeRaker({ console: false })
         ],
-        external: /\/register.js$/
+        external: /\/register\.[cm]?[jt]s$/
     },
 
-    // lib/register.js, lib/esm-hooks.js
+    // lib/register.js
     {
-        input: [
-            'source/lib/register.ts',
-            'source/lib/esm-hooks.ts'
-        ],
+        input: 'source/lib/register.ts',
         output: {
             dir: 'lib',
             format: 'esm',
@@ -54,7 +51,7 @@ export default defineConfig([
         plugins: [
             nodeExternals(),
             sucrase(),
-            codeRaker({ console: false }),
+            codeRaker(),
             {
                 name: 'emit-dts',
                 async generateBundle() {
@@ -66,7 +63,41 @@ export default defineConfig([
                 }
             }
         ],
-        external: /\/transform.cjs$/
+        external: /\/hooks.*\.[cm]?[jt]s$/
+    },
+
+    // lib/hooks.js
+    {
+        input: 'source/lib/hooks.ts',
+        output: {
+            dir: 'lib',
+            format: 'esm',
+            sourcemap: 'hidden',
+            sourcemapExcludeSources: true
+        },
+        plugins: [
+            nodeExternals(),
+            sucrase(),
+            codeRaker(),
+        ],
+        external: /\/transform\.[cm]?[jt]s$/
+    },
+
+    // lib/hooks-legacy.js
+    {
+        input: 'source/lib/hooks-legacy.ts',
+        output: {
+            dir: 'lib',
+            format: 'esm',
+            sourcemap: 'hidden',
+            sourcemapExcludeSources: true
+        },
+        plugins: [
+            nodeExternals(),
+            sucrase(),
+            codeRaker(),
+        ],
+        external: /\/transform\.[cm]?[jt]s$/
     },
 
     // lib/transform.cjs
