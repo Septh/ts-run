@@ -19,13 +19,13 @@ else {
     const shortName = name.split('/').pop()
 
     if (argv.length > 2) {
-        if (/^-v|--version$/.test(argv[2])) {
-            console.log(`Node.js v${process.versions.node}, ${shortName} v${version}`)
+        if (argv[2] === '-v' || argv[2] === '--version') {
+            console.info(`Node.js v${process.versions.node}, ${shortName} v${version}`)
         }
         else if (argv[2].startsWith('-')) {
             console.error(`${shortName}: unknown argument ${argv[2]}. Script arguments must be written *after* the name of the script.`)
             process.exitCode = 1
         }
     }
-    else console.log(`Usage: ${shortName} -v | path${sep}to${sep}script.ts`)
+    else console.info(`Usage: ${shortName} -v | path${sep}to${sep}script.ts`)
 }
