@@ -45,14 +45,14 @@
     "#package.json": "./package.json"
   },
   "scripts": {
-    "check": "tsc -p . --noEmit",
     "prebuild": "rimraf bin lib",
     "build": "npm run buildOnly",
-    "buildOnly": "npm run check && rollup --config",
-    "watch": "npm run build -- --watch",
-    "pretest": "npm run build",
-    "test": "npm run testOnly",
-    "testOnly": "node test/check-node-21.js && node --import=./lib/register.js --test test/**/*.test.{ts,mts,cts}",
+    "buildOnly": "tsc -p . --noEmit && rollup -c",
+    "prewatch": "rimraf bin lib",
+    "watch": "tsc -p . --noEmit && rollup -cw",
+    "pretest": "npm run buildOnly",
+    "test": "node test/check-node-21.js && npm run testOnly",
+    "testOnly": "node --import=./lib/register.js --test test/**/*.test.{ts,mts,cts}",
     "prepublishOnly": "npm run buildOnly"
   },
   "devDependencies": {
