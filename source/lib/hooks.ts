@@ -77,23 +77,16 @@ export const resolve: ResolveHookSync = (specifier, context, nextResolve) => {
 
     // Only handle file: imports.
     if (context.parentURL && new URL(specifier, context.parentURL).protocol === 'file:') {
-        for (const candidate of candidates(specifier, context.conditions)) {
+        for (const candidate of candidates(specifier)) {
             const resolved = new URL(candidate, context.parentURL)
-            try {
-                if (statSync(fileURLToPath(resolved)).isFile())
-                    return { url: resolved.href, shortCircuit: true }
-            }
-            catch (err) {
-                const { code } = err as NodeJS.ErrnoException
-                if (code != 'ENOENT')
-                    throw err
-            }
+            if (statSync(resolved, { throwIfNoEntry: false })?.isFile())
+                return { url: resolved.href, shortCircuit: true }
         }
     }
 
     return nextResolve(specifier, context)
 
-    function *candidates(base: string, conditions: string[]) {
+    function *candidates(base: string) {
 
         if (tsExtRx.test(base)) {
             // For TypeScript specifiers, only try as-is.
@@ -104,7 +97,7 @@ export const resolve: ResolveHookSync = (specifier, context, nextResolve) => {
             yield base.replace(jsExtRx, '.$1ts')
             yield base
         }
-        else if (path.extname(base) === '' && conditions.includes('require')) {
+        else if (path.extname(base) === '' && context.conditions.includes('require')) {
             // For extension-less specifiers, mimic standard require() by trying both *.[tj]s and */index.[tj]s
             // Note that like require(), *.[cm][tj]s is not considered, only *.[tj]s
             yield base + '.ts'
@@ -117,7 +110,7 @@ export const resolve: ResolveHookSync = (specifier, context, nextResolve) => {
 
 export const load: LoadHookSync = (url, context, nextLoad) => {
 
-    // We only handle TypeScript files.
+    // We only handle TypeScript file: URLs.
     const fileUrl = new URL(url)
     const { protocol, pathname } = fileUrl
     const [ ext ] = tsExtRx.exec(pathname) ?? []
