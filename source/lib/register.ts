@@ -11,18 +11,18 @@ process.setSourceMapsEnabled(true)
 // Node.js >= 24.15, 25: use the recommended `registerHooks()` API.
 // https://github.com/nodejs/node/issues/62692#issuecomment-4229736916
 if (major >= 25 || (major === 24 && minor >= 15)) {
-    const { resolve, load, installCjsHooks } = await import('./hooks.js')
+    const { resolve, load, patchCjsLoader } = await import('./hooks.js')
     module.registerHooks({ resolve, load })
 
     // Also monkey-patch the cjs loader if Node < 26.2
     // (https://github.com/nodejs/node/pull/62920 landed in 26.2)
     if (major < 26 || (major === 26 && minor < 2))
-        installCjsHooks()
+        patchCjsLoader()
 }
 else {
     // For older Node.js, use the legacy `register()` API for esm and monkey-patch the cjs loader.
     module.register('./hooks.js', import.meta.url)
 
-    const { installCjsHooks } = await import('./hooks.js')
-    installCjsHooks()
+    const { patchCjsLoader } = await import('./hooks.js')
+    patchCjsLoader()
 }

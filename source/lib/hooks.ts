@@ -2,7 +2,6 @@ import path from 'node:path'
 import module, { type ResolveHookSync, type LoadHookSync } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { readFileSync, statSync } from 'node:fs'
-import { styleText } from 'node:util'
 import { transform } from './transform.cjs'
 
 const [ major, minor ] = process.versions.node.split('.').map(Number)
@@ -49,7 +48,7 @@ function nearestPackageType(file: string, defaultType: NodeJS.ModuleType): NodeJ
     return defaultType
 }
 
-export function installCjsHooks() {
+export function patchCjsLoader() {
     const { _resolveFilename } = module
     module._resolveFilename = function _resolveFilenamePatch(request, ...otherArgs) {
         try {
