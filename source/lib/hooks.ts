@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url'
 import { readFileSync, statSync } from 'node:fs'
 import { transform } from './transform.cjs'
 
-const [ major, minor ] = process.versions.node.split('.').map(Number)
 const pkgTypeCache = new Map<string, NodeJS.ModuleType | null>()
 const jsExtRx = /\.([cm])?js$/
 const tsExtRx = /\.([cm])?ts$/
@@ -12,6 +11,7 @@ const tsExtRx = /\.([cm])?ts$/
 // Determine the default module type.
 // Note: --experimental-default-type was removed in Node 23.4.0
 let defaultModuleType: NodeJS.ModuleType = 'commonjs'
+const [ major, minor ] = process.versions.node.split('.').map(Number)
 if (major < 23 || (major === 23 && minor < 4)) {
     const argIndex = process.execArgv.findIndex(arg => /^--(?:experimental-)?default-type/.test(arg))
     if (argIndex >= 0) {
