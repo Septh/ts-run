@@ -5,11 +5,12 @@ import { createRequire } from 'node:module'
 
 const { argv } = process
 if (argv.length >= 3 && !argv[2].startsWith('-')) {
+
     // Register the loaders.
     await import('../lib/register.js')
 
-    // Get the name of the real script entry point from the command line,
-    // replace us in argv with that entry point, then dynamically import it.
+    // Get the name of script to run from the command line,
+    // replace us in argv with that name, then dynamically import the script.
     argv.splice(1, 2, resolve(argv[2]))
     await import(pathToFileURL(argv[1]).href)
 }
@@ -19,9 +20,8 @@ else {
     const shortName = name.split('/').pop()
 
     if (argv.length > 2) {
-        if (argv[2] === '-v' || argv[2] === '--version') {
+        if (argv[2] === '-v' || argv[2] === '--version')
             console.info(`Node.js v${process.versions.node}, ${shortName} v${version}`)
-        }
         else if (argv[2].startsWith('-')) {
             console.error(`${shortName}: unknown argument ${argv[2]}. Script arguments must be written *after* the name of the script.`)
             process.exitCode = 1
