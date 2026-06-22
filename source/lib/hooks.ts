@@ -2,7 +2,7 @@ import path from 'node:path'
 import module, { type ResolveHookSync, type LoadHookSync } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { readFileSync, statSync } from 'node:fs'
-import { transform } from './transform.cjs'
+import { transform } from './transform.js'
 
 const pkgTypeCache = new Map<string, NodeJS.ModuleType | null>()
 const jsExtRx = /\.([cm])?js$/

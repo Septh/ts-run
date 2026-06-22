@@ -17,7 +17,7 @@
     "checkJs": true,
 
     // Output
-    "rewriteRelativeImportExtensions": true,
+    // "rewriteRelativeImportExtensions": true,
     "noEmit": true,
 
     // Type checking

@@ -36,7 +36,7 @@ export default defineConfig([
             sucrase(),
             codeRaker({ preset: 'application' })
         ],
-        external: /\/register\.[cm]?[jt]s$/
+        external: /\/register\.js$/
     },
 
     // lib/register.js, lib/hooks.js
@@ -66,20 +66,15 @@ export default defineConfig([
                 }
             }
         ],
-        external: [ /\/hooks.*\.[cm]?[jt]s$/, /\/transform\.[cm]?[jt]s$/ ]
+        external: [ /\/hooks\.js$/, /\/transform\.js$/ ]
     },
 
-    // lib/transform.cjs
+    // lib/transform.js
     {
-        input: 'source/lib/transform.cts',
+        input: 'source/lib/transform.ts',
         output: {
-            file: 'lib/transform.cjs',
-            format: 'commonjs',
-            generatedCode: {
-                preset: 'es2015',
-                symbols: false
-            },
-            esModule: false,
+            file: 'lib/transform.js',
+            format: 'esm',
             sourcemap: false,
         },
         plugins: [
