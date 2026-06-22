@@ -8,7 +8,7 @@
 </p>
 
 # ts-run
-> The minimalist TypeScript script runner for NodeJS.
+> The minimalist TypeScript script runner for Node.js.
 
 ### Features
 - **Runs scripts Node's built-in TypeScript parser won't**.
@@ -25,11 +25,10 @@
 
 ### Non-features
 - Not for running full-blown TypeScript projects.
-- No REPL support.
 
 
 ## About
-`ts-run` is a CLI command that you can use to run TypeScript scripts in NodeJS as if they were written in plain JavaScript. It is as simple as:
+`ts-run` is a CLI command that you can use to run TypeScript scripts in Node.js as if they were written in plain JavaScript. It is as simple as:
 
 ```sh
 ts-run ./some-script.ts
@@ -39,7 +38,7 @@ The idea is that you take advantage of your IntelliSense-compatible editor to au
 
 
 ## Installation and usage
-`ts-run` requires a modern (as of January 2024) version of NodeJS:
+`ts-run` requires a modern (as of January 2024) version of Node.js:
 - Node 18 version 18.19.0 or later
 - Node 20 version 20.6.0 or later
 - Any version >= 21
@@ -96,14 +95,11 @@ node --import=@septh/ts-run ./scripts/do-something.ts
 
 ## Differences with Node's built-in TypeScript support
 
-Since 22.6.0, NodeJS has [built-in support for running TypeScript scripts](https://nodejs.org/api/typescript.html#modules-typescript). At first, the feature had to be opted-in with the `--experimental-strip-types`, but it's been unflagged with 22.18.0 and is now always on.
+Since 22.6.0, Node.js has [built-in support for running TypeScript scripts](https://nodejs.org/api/typescript.html#modules-typescript). At first, the feature had to be opted-in with the `--experimental-strip-types`, but it's been unflagged with 22.18.0 and is now always on.
 
 However, Node only supports [erasable TypeScript syntax](https://devblogs.microsoft.com/typescript/announcing-typescript-5-8-beta/#the---erasablesyntaxonly-option): it will throw on `enum`s, `namespace`s and a few other TypeScript niceties (those used to be supported with `--experimental-transform-types` but the feature has been abandoned and [removed in 26.0.0](https://github.com/nodejs/node/pull/61803)).
 
 So, to sum up: Node simply does not perform all the work `ts-run` does, especially transforming `enum`s and `const enum`s, parameter properties in classes, `import` statements, etc.
-
-> [!IMPORTANT]
-> Node's [`import.meta.main`](https://nodejs.org/api/esm.html#importmetamain) feature will always report `false` for scripts run through the `ts-run` executable. If you need to rely on `import.meta.main`, use the `--import` flag instead as shown above.
 
 
 ## TypeScript to JavaScript considerations
@@ -115,8 +111,10 @@ So, to sum up: Node simply does not perform all the work `ts-run` does, especial
 
 In the vast majority of cases, though, they'll run just fine.
 
-<details><summary>view table</summary>
+> [!IMPORTANT]
+> Node's [`import.meta.main`](https://nodejs.org/api/esm.html#importmetamain) feature will always report `false` for scripts run through the `ts-run` executable. If you need to rely on `import.meta.main`, use the `--import` flag.
 
+<details><summary>view table</summary>
 
 | Statement | ESM | CJS |
 |-----------|-----|-----|
@@ -136,7 +134,7 @@ In the vast majority of cases, though, they'll run just fine.
 
 </details>
 
-#### Specifiers
+### Specifiers
 You should simply use `.ts` specifiers everywhere:
 
 ```ts
@@ -166,7 +164,7 @@ import { something } from './a'   // will try './a.ts' first, then './a.js',
 ```
 
 
-#### TypeScript specificities
+### TypeScript specificities
 TypeScript's module resolution specificities are not handled; instead, Node's module resolution algorithm is always used.
 
 In other words, `ts-run` always acts as if `tsconfig.json` had both `moduleResolution` and `module` set to `NodeNext` and `paths` was empty.
@@ -227,12 +225,12 @@ This very repo is using Node as its test runner of choice. Here's what your `scr
   }
 ```
 
-> Note: to pass command line options to Node itself, you need to use the `--import` syntax as shown above.
+> Reminder: to pass command line options to Node itself, you need to use the `--import` syntax as shown above.
 
 ### With ava >= 8.0
 Add the following entry to your `package.json`:
 
-```jsonc
+```json
   "ava": {
     "extensions": [ "ts", "mts", "cts" ],
     "nodeArguments": [
