@@ -1,21 +1,14 @@
 declare global {
-
     namespace NodeJS {
-        type ModuleType = 'commonjs' | 'module'
+        export type ModuleType = 'commonjs' | 'module'
 
         interface Module {
-            _resolveFilename(request: string, ...otherArgs: any[]): string
             _compile(code: string, filename: string): string
         }
     }
-
-    // Fields of interest in package.json.
-    interface PackageJson {
-        type?: NodeJS.ModuleType
-    }
 }
 
-declare module 'module' {
+declare module 'node:module' {
     export function _resolveFilename(request: string, ...otherArgs: any[]): string
     export const _extensions: NodeJS.RequireExtensions
 }

@@ -15,11 +15,11 @@ export function transform(source: string, format: NodeJS.ModuleType, filePath: s
         sourceMapOptions: {
             compiledFilename: filePath
         }
-    }) as Required<sucrase.TransformResult>
+    })
 
-    sourceMap.sourceRoot = ''
-    sourceMap.sources = [ filePath ]
-    // sourceMap.sourcesContent = [ source ]
+    sourceMap!.sourceRoot = ''
+    sourceMap!.sources = [ filePath ]
+    // sourceMap!.sourcesContent = [ source ]
 
     return code + '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,'
                 + Buffer.from(JSON.stringify(sourceMap)).toString('base64')

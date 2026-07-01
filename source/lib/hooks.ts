@@ -1,8 +1,13 @@
 import path from 'node:path'
-import module, { type ResolveHookSync, type LoadHookSync } from 'node:module'
+import module from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { readFileSync, statSync } from 'node:fs'
 import { transform } from './transform.js'
+
+// Fields of interest in package.json.
+interface PackageJson {
+    type?: NodeJS.ModuleType
+}
 
 const pkgTypeCache = new Map<string, NodeJS.ModuleType | null>()
 const jsExtRx = /\.([cm])?js$/
@@ -72,7 +77,7 @@ export function patchCjsLoader() {
     }
 }
 
-export const resolve: ResolveHookSync = (specifier, context, nextResolve) => {
+export const resolve: module.ResolveHookSync = (specifier, context, nextResolve) => {
 
     // Only handle file: imports.
     if (context.parentURL && new URL(specifier, context.parentURL).protocol === 'file:') {
@@ -107,7 +112,7 @@ export const resolve: ResolveHookSync = (specifier, context, nextResolve) => {
     }
 }
 
-export const load: LoadHookSync = (url, context, nextLoad) => {
+export const load: module.LoadHookSync = (url, context, nextLoad) => {
 
     // We only handle TypeScript file: URLs.
     const fileUrl = new URL(url)
