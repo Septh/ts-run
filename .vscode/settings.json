@@ -6,6 +6,11 @@
       "**/node_modules/**"
     ]
   },
+  "cSpell.language": "en",
+  "cSpell.enabledFileTypes": {
+    "typescript": true,
+    "markdown": true
+  },
   "cSpell.words": [
     "misbehaviors",
     "sourcemaps"
