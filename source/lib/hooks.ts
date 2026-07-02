@@ -91,7 +91,6 @@ export const resolve: module.ResolveHookSync = (specifier, context, nextResolve)
     return nextResolve(specifier, context)
 
     function *candidates(base: string) {
-
         if (tsExtRx.test(base)) {
             // For TypeScript specifiers, only try as-is.
             yield base
@@ -114,7 +113,7 @@ export const resolve: module.ResolveHookSync = (specifier, context, nextResolve)
 
 export const load: module.LoadHookSync = (url, context, nextLoad) => {
 
-    // We only handle TypeScript file: URLs.
+    // Only handle TypeScript file: URLs.
     const fileUrl = new URL(url)
     const { protocol, pathname } = fileUrl
     const [ ext ] = tsExtRx.exec(pathname) ?? []
