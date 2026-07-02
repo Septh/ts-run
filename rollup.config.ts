@@ -3,22 +3,12 @@ import { readFile } from 'node:fs/promises'
 import { defineConfig } from 'rollup'
 import { nodeExternals } from 'rollup-plugin-node-externals'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
-import commonJS_ from '@rollup/plugin-commonjs'
-import terser_ from '@rollup/plugin-terser'
 import { sucrase } from 'rollup-plugin-fast-typescript'
 import { codeRaker } from 'rollup-plugin-code-raker'
 
-/**
- * Workaround for the wrong typings in all rollup plugins
- * (see https://github.com/rollup/plugins/issues/1541#issuecomment-1837153165)
- *
- * @template T
- * @param { {default: T} } plugin
- * @returns {T}
- */
-const fixRollupPlugin = (plugin) => /** @type {T} */(plugin)
-const commonJS = fixRollupPlugin(commonJS_)
-const terser = fixRollupPlugin(terser_)
+/* Workaround for the wrong typings in all rollup plugins */
+const { default: commonJS } = await import('@rollup/plugin-commonjs') as unknown as typeof import('@rollup/plugin-commonjs')
+const { default: terser } = await import('@rollup/plugin-terser') as unknown as typeof import('@rollup/plugin-terser')
 
 export default defineConfig([
 
