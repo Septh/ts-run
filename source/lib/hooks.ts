@@ -29,25 +29,27 @@ if (major < 23 || (major === 23 && minor < 4)) {
 function nearestPackageType(file: string, defaultType: NodeJS.ModuleType): NodeJS.ModuleType {
     for (let current = path.dirname(file), previous = ''; previous !== current; previous = current, current = path.dirname(current)) {
         const pathKey = path.join(current, 'package.json')
-        let cached = pkgTypeCache.get(pathKey)
-        if (cached === undefined) {
+        let type = pkgTypeCache.get(pathKey)
+        if (type === undefined) {
             try {
                 const buffer = readFileSync(pathKey)
-                const { type } = JSON.parse(buffer.toString()) as PackageJson
-                cached = (type === 'module' || type ==='commonjs') ? type : defaultType
+                type = (JSON.parse(buffer.toString()) as PackageJson).type ?? defaultType
+
+                // Node seems to simply ignore invalid 'type' values, so let's do the same.
+                if (type !== 'commonjs' && type !== 'module')
+                    type = defaultType
             }
             catch (err) {
-                const { code } = err as NodeJS.ErrnoException
-                if (code !== 'ENOENT')
+                if (!(err instanceof Error && (err as NodeJS.ErrnoException).code === 'ENOENT'))
                     throw err
-                cached = null
+                type = null
             }
 
-            pkgTypeCache.set(pathKey, cached)
+            pkgTypeCache.set(pathKey, type)
         }
 
-        if (typeof cached === 'string')
-            return cached
+        if (type !== null)
+            return type
     }
 
     return defaultType
@@ -92,11 +94,11 @@ export const resolve: module.ResolveHookSync = (specifier, context, nextResolve)
 
     function *candidates(base: string) {
         if (tsExtRx.test(base)) {
-            // For TypeScript specifiers, only try as-is.
+            // For .ts specifiers, only try as-is.
             yield base
         }
         else if (jsExtRx.test(base)) {
-            // For JavaScript specifiers, try the TS counterpart first, then as-is.
+            // For .js specifiers, try the .ts counterpart first, then as-is.
             yield base.replace(jsExtRx, '.$1ts')
             yield base
         }
