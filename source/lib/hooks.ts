@@ -10,8 +10,8 @@ interface PackageJson {
 }
 
 const pkgTypeCache = new Map<string, NodeJS.ModuleType | null>()
-const jsExtRx = /\.([cm])?js$/
-const tsExtRx = /\.([cm])?ts$/
+const jsExtRx   = /\.([cm])?js$/
+const tsExtRx   = /\.([cm])?ts$/
 
 // Determine the default module type.
 // Note: --experimental-default-type was removed in Node 23.4.0
@@ -81,8 +81,8 @@ export function patchCjsLoader() {
 
 export const resolve: module.ResolveHookSync = (specifier, context, nextResolve) => {
 
-    // Only handle file: imports.
-    if (context.parentURL && new URL(specifier, context.parentURL).protocol === 'file:') {
+    // Only handle file: relative imports.
+    if (/^\.{1,2}\//.test(specifier) && context.parentURL && new URL(specifier, context.parentURL).protocol === 'file:') {
         for (const candidate of candidates(specifier)) {
             const resolved = new URL(candidate, context.parentURL)
             if (statSync(resolved, { throwIfNoEntry: false })?.isFile())
