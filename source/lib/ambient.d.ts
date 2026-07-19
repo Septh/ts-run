@@ -1,7 +1,5 @@
 declare global {
     namespace NodeJS {
-        export type ModuleType = 'commonjs' | 'module'
-
         interface Module {
             _compile(code: string, filename: string): string
         }

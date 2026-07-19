@@ -2,23 +2,23 @@ import path from 'node:path'
 import module from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { readFileSync, statSync } from 'node:fs'
-import { transform } from './transform.js'
+import { transform, type ModuleType } from './transform.js'
 
 // Fields of interest in package.json.
 interface PackageJson {
-    type?: NodeJS.ModuleType
+    type?: ModuleType
 }
 
-const pkgTypeCache = new Map<string, NodeJS.ModuleType | null>()
-const jsExtRx   = /\.([cm])?js$/
-const tsExtRx   = /\.([cm])?ts$/
+const pkgTypeCache = new Map<string, ModuleType | null>()
+const jsExtRx = /\.([cm])?js$/
+const tsExtRx = /\.([cm])?ts$/
 
 // Determine the default module type.
-// Note: --experimental-default-type was removed in Node 23.4.0
-let defaultModuleType: NodeJS.ModuleType = 'commonjs'
+// (--experimental-default-type was removed in Node 23.4.0)
+let defaultModuleType: ModuleType = 'commonjs'
 const [ major, minor ] = process.versions.node.split('.').map(Number)
 if (major < 23 || (major === 23 && minor < 4)) {
-    const argIndex = process.execArgv.findIndex(arg => /^--(?:experimental-)?default-type/.test(arg))
+    const argIndex = process.execArgv.findIndex(arg => arg.startsWith('--experimental-default-type'))
     if (argIndex >= 0) {
         const type = process.execArgv[argIndex].split('=')[1] || process.execArgv[argIndex + 1]
         if (type === 'module' || type === 'commonjs')
@@ -26,14 +26,14 @@ if (major < 23 || (major === 23 && minor < 4)) {
     }
 }
 
-function nearestPackageType(file: string, defaultType: NodeJS.ModuleType): NodeJS.ModuleType {
+function nearestPackageType(file: string, defaultType: ModuleType): ModuleType {
     for (let current = path.dirname(file), previous = ''; previous !== current; previous = current, current = path.dirname(current)) {
         const pathKey = path.join(current, 'package.json')
         let type = pkgTypeCache.get(pathKey)
         if (type === undefined) {
             try {
-                const buffer = readFileSync(pathKey)
-                type = (JSON.parse(buffer.toString()) as PackageJson).type ?? defaultType
+                const manifest = JSON.parse(readFileSync(pathKey).toString()) as PackageJson
+                type = manifest.type ?? defaultType
 
                 // Node seems to simply ignore invalid 'type' values, so let's do the same.
                 if (type !== 'commonjs' && type !== 'module')
@@ -72,7 +72,7 @@ export function patchCjsLoader() {
     module._extensions['.cts'] = (mod, filename) => compile(mod, 'commonjs', filename)
     module._extensions['.mts'] = (mod, filename) => compile(mod, 'module', filename)
 
-    function compile(mod: module, format: NodeJS.ModuleType, filePath: string) {
+    function compile(mod: module, format: ModuleType, filePath: string) {
         const buffer = readFileSync(filePath)
         const source = transform(buffer.toString(), format, path.basename(filePath))
         return mod._compile(source, filePath)
@@ -82,7 +82,7 @@ export function patchCjsLoader() {
 export const resolve: module.ResolveHookSync = (specifier, context, nextResolve) => {
 
     // Only handle file: relative imports.
-    if (/^\.{1,2}\//.test(specifier) && context.parentURL && new URL(specifier, context.parentURL).protocol === 'file:') {
+    if (/^\.{1,2}\//.test(specifier) && new URL(specifier, context.parentURL).protocol === 'file:') {
         for (const candidate of candidates(specifier)) {
             const resolved = new URL(candidate, context.parentURL)
             if (statSync(resolved, { throwIfNoEntry: false })?.isFile())
@@ -118,7 +118,7 @@ export const load: module.LoadHookSync = (url, context, nextLoad) => {
     // Only handle TypeScript file: URLs.
     const fileUrl = new URL(url)
     const { protocol, pathname } = fileUrl
-    const [ ext ] = tsExtRx.exec(pathname) ?? []
+    const ext = tsExtRx.exec(pathname)?.[0]
     if (protocol !== 'file:' || !ext)
         return nextLoad(url, context)
 
