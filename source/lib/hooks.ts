@@ -20,7 +20,7 @@ const [ major, minor ] = process.versions.node.split('.').map(Number)
 if (major < 23 || (major === 23 && minor < 4)) {
     const argIndex = process.execArgv.findIndex(arg => arg.startsWith('--experimental-default-type'))
     if (argIndex >= 0) {
-        const type = process.execArgv[argIndex].split('=')[1] || process.execArgv[argIndex + 1]
+        const type = process.execArgv[argIndex].split('=')[1] ?? process.execArgv[argIndex + 1]
         if (type === 'module' || type === 'commonjs')
             defaultModuleType = type
     }
@@ -32,15 +32,14 @@ function nearestPackageType(file: string, defaultType: ModuleType): ModuleType {
         let type = pkgTypeCache.get(pathKey)
         if (type === undefined) {
             try {
-                const manifest = JSON.parse(readFileSync(pathKey).toString()) as PackageJson
-                type = manifest.type ?? defaultType
+                type = (JSON.parse(readFileSync(pathKey).toString()) as PackageJson).type
 
                 // Node seems to simply ignore invalid 'type' values, so let's do the same.
                 if (type !== 'commonjs' && type !== 'module')
                     type = defaultType
             }
             catch (err) {
-                if (!(err instanceof Error && (err as NodeJS.ErrnoException).code === 'ENOENT'))
+                if (!(err instanceof Error) || (err as NodeJS.ErrnoException).code !== 'ENOENT')
                     throw err
                 type = null
             }
@@ -57,7 +56,7 @@ function nearestPackageType(file: string, defaultType: ModuleType): ModuleType {
 
 export function patchCjsLoader() {
     const { _resolveFilename } = module
-    module._resolveFilename = function _resolveFilenamePatch(request, ...otherArgs) {
+    module._resolveFilename = (request, ...otherArgs) => {
         try {
             // Let's try first with the .ts extension...
             return _resolveFilename.call(module, request.replace(jsExtRx, '.$1ts'), ...otherArgs)
@@ -137,9 +136,5 @@ export const load: module.LoadHookSync = (url, context, nextLoad) => {
     // Load and transform the file.
     const buffer = readFileSync(filePath)
     const source = transform(buffer.toString(), format, path.basename(filePath))
-    return {
-        source,
-        format,
-        shortCircuit: true,
-    }
+    return { source, format, shortCircuit: true }
 }
